@@ -7,8 +7,24 @@
 
 const size_t HashBufferSize = 1024;
 
+static string stringFromData(const void *ptr, size_t numBytes) {
+  // get byte pointer
+  const char *cptr = (const char*) ptr;
+  
+  // create output string big enough
+  string result;
+  result.reserve(2*numBytes);
+
+  for(size_t i=0; i<numBytes; i++) {
+    char ascii[3];
+    snprintf(ascii, sizeof(ascii), "%02x", cptr[i]);
+    result += ascii;
+  }
+
+  return result;
+}
+
 string fileSignature(const string &path) {
-  string data;
   MD5_CTX ctx;
   unsigned char csum[MD5_DIGEST_LENGTH];
 
@@ -19,7 +35,7 @@ string fileSignature(const string &path) {
   if(!fp)
     return "File Doesn't Exist";
 
-  char buffer[1024];
+  char buffer[HashBufferSize];
   while(!feof(fp)) {
     size_t len = fread(buffer, 1, sizeof(buffer), fp);
 
@@ -33,14 +49,7 @@ string fileSignature(const string &path) {
   if(MD5_Final(csum, &ctx) == 0)
     return "MD5_Final error";
 
-  string result;
-  result.reserve(2*MD5_DIGEST_LENGTH);
-
-  for(int i=0; i<MD5_DIGEST_LENGTH; i++) {
-    char ascii[3];
-    snprintf(ascii, sizeof(ascii), "%02x", csum[i]);
-    result += ascii;
-  }
-
-  return result;
+  return stringFromData(csum, MD5_DIGEST_LENGTH);
 }
+
+
