@@ -9,6 +9,7 @@ env.ParseConfig('pkg-config openssl --libs --cflags');
 
 sources = [
   'src/FileOps.cpp',
+  'src/Process.cpp',
   ]
 
 env.Program('remodel', ['src/main.cpp'] + sources)

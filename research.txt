@@ -1,6 +1,7 @@
 vfork - fork for immediately calling exec
 _exit - quitting without flushing open files; appropriate from child processes
 posix_spawn - man page suggests calling "sh" to invoke things
+man 2 pipe - creating pipes from C/C++
 
 md5sum
 #include <openssl/md5.h>
