@@ -1,7 +1,5 @@
 #include "FileOps.h"
 
-#include "str++.h"
-
 #include <cstdio>
 #include <openssl/md5.h>
 
@@ -9,7 +7,7 @@ const size_t HashBufferSize = 1024;
 
 static string stringFromData(const void *ptr, size_t numBytes) {
   // get byte pointer
-  const char *cptr = (const char*) ptr;
+  const unsigned char *cptr = (const unsigned char*) ptr;
   
   // create output string big enough
   string result;
@@ -18,6 +16,7 @@ static string stringFromData(const void *ptr, size_t numBytes) {
   for(size_t i=0; i<numBytes; i++) {
     char ascii[3];
     snprintf(ascii, sizeof(ascii), "%02x", cptr[i]);
+    ascii[2] = 0;
     result += ascii;
   }
 
