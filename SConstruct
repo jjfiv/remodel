@@ -5,9 +5,10 @@ env = Environment()
 env.Append(CXXFLAGS=['-std=c++0x', '-O2', '-Wall', '-Werror'])
 env.Append(CXXFLAGS=['-g'])
 env.Append(CCFLAGS=['-O2'])
-#env.Append(LIBS=['rt'])
+env.ParseConfig('pkg-config openssl --libs --cflags');
 
 sources = [
+  'src/FileOps.cpp',
   ]
 
 env.Program('remodel', ['src/main.cpp'] + sources)
