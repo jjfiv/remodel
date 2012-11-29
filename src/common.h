@@ -9,6 +9,8 @@ using std::vector;
 using std::cout;
 using std::cerr;
 
+#include <cassert>
+
 // debugging fun
 #define show(var) \
   cout << __FILE__ << ":" << __LINE__ << ": " << #var << " = " << var << "\n"
