@@ -7,7 +7,8 @@
 
 struct ProcessResult {
   ProcessResult(pid_t pid, int ret) : id(pid), status(ret) { }
-  bool success() const { return status == 0; }
+  bool valid() const { return id >= 0; }
+  bool success() const { return valid() && status == 0; }
   pid_t id;
   int status;
 };

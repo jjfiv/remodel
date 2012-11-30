@@ -9,7 +9,6 @@ env.ParseConfig('pkg-config openssl --libs --cflags');
 
 sources = [
   'src/FileOps.cpp',
-  'src/Process.cpp',
   'src/ProcessManager.cpp',
   ]
 

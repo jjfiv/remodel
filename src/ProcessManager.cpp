@@ -36,6 +36,10 @@ pid_t ProcessManager::spawn(const string &cmd) {
 ProcessResult ProcessManager::waitNextChild() {
   int status;
   pid_t whom = wait(&status);
+  if(whom < 0) {
+    perror("wait");
+    return ProcessResult(-1, -1);
+  }
 
   auto it = children.find(whom);
   assert(it != children.end());
