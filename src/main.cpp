@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  // ensure that arguments given to build are defined
   for(auto t: currentTargets) {
     if(definedTargets.find(t) == definedTargets.end()) {
       cerr << "remodel: *** target `"<<t<<"' not defined.\n";

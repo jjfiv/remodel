@@ -14,5 +14,8 @@ sources = [
   'src/Parser.cpp',
   ]
 
-env.Program('remodel', ['src/main.cpp'] + sources)
+program = env.Program('remodel', ['src/main.cpp'] + sources)
+
+# execute test.py on 'scons test'
+env.AlwaysBuild(env.Alias('test', [program], 'python test.py'));
 
