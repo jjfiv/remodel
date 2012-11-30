@@ -5,6 +5,7 @@
 
 string fileSignature(const string &path);
 bool changeDirectory(const string &path);
+bool canOpenFile(const string &path);
 
 
 #endif

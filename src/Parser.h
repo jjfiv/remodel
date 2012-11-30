@@ -24,7 +24,6 @@ class BuildNode {
       return out << name;
     }
 
-  private:
     string name;
 };
 

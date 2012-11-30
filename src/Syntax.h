@@ -8,6 +8,7 @@ namespace Syntax {
   const string Colon = ":";
   const string Comma = ",";
   const string EndOfFile = "";
+  const string DefaultTarget = "DEFAULT";
 }
 
 #endif

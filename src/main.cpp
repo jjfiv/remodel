@@ -11,6 +11,23 @@ void printHelp() {
           "\n";
 }
 
+vector<string> collectTargets(const Arguments &args) {
+  vector<string> results;
+
+  for(size_t i=0; i<args.size(); i++) {
+    if(args[i][0] == '-') {
+      i++;
+      continue;
+    }
+    results.push_back(args[i]);
+  }
+
+  if(results.size() == 0)
+    results.push_back(Syntax::DefaultTarget);
+
+  return results;
+}
+
 int main(int argc, char *argv[]) {
   Arguments args(argc, argv);
 
@@ -19,18 +36,53 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  string targetFile = args.getAfter("-f","remodelfile");
-  string currentDir = args.getAfter("-C", ".");
+  // collect all arguments
+  string targetFile = args.hasAfter("-f","remodelfile");
+  string currentDir = args.hasAfter("-C", ".");
+  vector<string> currentTargets = collectTargets(args);
 
+  // change directory if necessary
   if(!changeDirectory(currentDir)) {
     return -1;
   }
 
+  // error if input file can't be found
+  if(!canOpenFile(targetFile)) {
+    cerr << "Cannot open " << currentDir << "/" << targetFile << "!\n";
+    return -1;
+  }
+
+  // create a set of defined targets
+  std::set <string> definedTargets;
   const auto rules = parseFile(targetFile);
   for(auto r: rules) {
-    cout << r << '\n';
+    for(BuildNode &t : r.targets) {
+      if(definedTargets.find(t.name) != definedTargets.end()) {
+        cerr << "Multiple rules for target `"<<t.name<<"'!\n";
+        return -1;
+      }
+      definedTargets.insert(t.name);
+    }
+  }
+
+  for(auto t: currentTargets) {
+    if(definedTargets.find(t) == definedTargets.end()) {
+      cerr << "remodel: *** target `"<<t<<"' not defined.\n";
+      return -1;
+    }
+  }
+
+  cout << "Defined Targets:\n";
+  for(auto t: definedTargets) {
+    cout << "  " << t << "\n";
+  }
+
+#if 0 
+  for(auto r: rules) {
+    //cout << r << '\n';
   }
   cout << "\n";
+#endif
 
 #if 0
   string testFile = "SConstruct";

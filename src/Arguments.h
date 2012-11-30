@@ -8,23 +8,34 @@ class Arguments {
         parameters.push_back(argv[i]);
     }
 
-    size_t count() const { return parameters.size(); }
+    size_t size() const { return parameters.size(); }
 
     bool has(const string &str) const {
-      for(const auto &p : parameters)
+      for(const string &p : parameters) {
         if(p == str) return true;
+      }
       return false;
     }
 
-    const string& getAfter(const string &toFind, const string &fallback) {
-      for(size_t i=0; i<count()-1; i++) {
-        if(parameters[i] == toFind)
+    const string& hasAfter(const string &toFind, const string &fallback) const {
+      for(size_t i=0; i<size()-1; i++) {
+        if(parameters[i] == toFind) {
           return parameters[i+1];
+        }
       }
       return fallback;
     }
 
-    const string& operator[](size_t index) { return parameters[index]; }
+    const string& operator[](size_t index) const { return parameters[index]; }
+
+    friend std::ostream& operator<<(std::ostream& out, const Arguments &args) {
+      out << "[";
+      for(size_t i=0; i<args.size(); i++) {
+        if(i != 0) out << ", ";
+        out << args[i];
+      }
+      return out << "]";
+    }
   
   private:
     vector<string> parameters;

@@ -56,6 +56,16 @@ bool changeDirectory(const string &path) {
   if(rc == 0) return true;
 
   perror("chdir");
+  show(path);
+  return false;
+}
+
+bool canOpenFile(const string &path) {
+  FILE *fp = fopen(path.c_str(), "r");
+  if(fp != 0) {
+    fclose(fp);
+    return true;
+  }
   return false;
 }
 
