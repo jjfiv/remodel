@@ -1,22 +1,38 @@
 #include "FileOps.h"
 #include "ProcessManager.h"
 #include "Parser.h"
+#include "Arguments.h"
 
+void printHelp() {
+  cout << "remodel help\n"
+          "  -f FILE      Read FILE as a remodelfile\n"
+          "  -C DIRECTORY Change to DIRECTORY before doing anything\n"
+          "  -h | --help  Show this help.\n"
+          "\n";
+}
 
 int main(int argc, char *argv[]) {
-  cout << "remodel\n";
+  Arguments args(argc, argv);
 
-  if(argc != 2) {
-    cerr << "remodel currently takes a file name as input...\n";
+  if(args.has("--help") || args.has("-h") || args.has("-?")) {
+    printHelp();
+    return 0;
+  }
+
+  string targetFile = args.getAfter("-f","remodelfile");
+  string currentDir = args.getAfter("-C", ".");
+
+  if(!changeDirectory(currentDir)) {
     return -1;
   }
 
-  const auto rules = parseFile(argv[1]);
+  const auto rules = parseFile(targetFile);
   for(auto r: rules) {
     cout << r << '\n';
   }
   cout << "\n";
 
+#if 0
   string testFile = "SConstruct";
   cout << fileSignature(testFile) << "  " << testFile << "\n";
   //Process pmd5("md5sum "+testFile);
@@ -30,6 +46,7 @@ int main(int argc, char *argv[]) {
     assert(pr.success());
     assert(pr.id == a || pr.id == b);
   }
+#endif
 
   return 0;
 }

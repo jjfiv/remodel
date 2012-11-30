@@ -51,4 +51,11 @@ string fileSignature(const string &path) {
   return stringFromData(csum, MD5_DIGEST_LENGTH);
 }
 
+bool changeDirectory(const string &path) {
+  int rc = chdir(path.c_str());
+  if(rc == 0) return true;
+
+  perror("chdir");
+  return false;
+}
 

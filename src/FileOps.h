@@ -4,6 +4,7 @@
 #include "common.h"
 
 string fileSignature(const string &path);
+bool changeDirectory(const string &path);
 
 
 #endif
