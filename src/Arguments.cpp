@@ -1,5 +1,15 @@
 #include "Arguments.h"
 
+string Arguments::ArgDef::key() const {
+  return names.front();
+}
+
+bool Arguments::ArgDef::matches(const string &arg) const {
+  for(const auto &n : names)
+    if(n == arg) return true;
+  return false;
+}
+
 string Arguments::defFlag(vector<string> names, string description) {
   argDefs.push_back( ArgDef(names, description, false) );
   return argDefs.back().key();

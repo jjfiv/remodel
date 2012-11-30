@@ -8,21 +8,20 @@
 class Arguments {
   public:
     struct ArgDef {
+      // constructor
       ArgDef(const vector<string> &n, string d, bool o)
         : names(n), description(d), option(o) { }
-      string key() const { return names.front(); }
-      bool matches(const string &arg) {
-        for(const auto &n : names)
-          if(n == arg) return true;
-        return false;
-      }
+      
+      // manipulate
+      string key() const;
+      bool matches(const string &arg) const;
+
+      // fields
       vector<string> names;
       string description;
       bool option;
     };
   public:
-
-    size_t size() const { return parameters.size(); }
 
     // setup
     string defFlag(vector<string> names, string description);
@@ -37,8 +36,7 @@ class Arguments {
     // query
     bool getFlag(const string &str) const;
     const string& getOption(const string &toFind, const string &fallback) const;
-
-    const string& operator[](size_t index) const { return parameters[index]; }
+    const vector<string>& getParameters() const { return parameters; }
 
   
   private:

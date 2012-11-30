@@ -11,33 +11,10 @@ void printHelp() {
           "\n";
 }
 
-vector<string> collectTargets(const Arguments &args) {
-  vector<string> results;
-
-  for(size_t i=0; i<args.size(); i++) {
-    if(args[i][0] == '-') {
-      i++;
-      continue;
-    }
-    results.push_back(args[i]);
-  }
-
-  if(results.size() == 0)
-    results.push_back(Syntax::DefaultTarget);
-
-  return results;
-}
-
-
-class BuildStep {
-  
-  private:
-    vector<string> dependency;
-};
-
 int main(int argc, char *argv[]) {
   Arguments args;
 
+  // hooray for C++11 initializer lists :D
   const auto OPT_FILE = args.defOption({"-f", "--file"}, "Read FILE as a remodelfile.");
   const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");
   const auto OPT_HELP = args.defFlag({"--help", "-?", "-h"}, "Show this help.");
@@ -52,7 +29,9 @@ int main(int argc, char *argv[]) {
   // collect all arguments
   string targetFile = args.getOption(OPT_FILE,"remodelfile");
   string currentDir = args.getOption(OPT_DIR, ".");
-  vector<string> currentTargets = collectTargets(args);
+  vector<string> currentTargets = args.getParameters();
+  if(currentTargets.size() == 0)
+    currentTargets.push_back(Syntax::DefaultTarget);
 
   // change directory if necessary
   if(!changeDirectory(currentDir)) {
