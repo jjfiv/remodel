@@ -28,17 +28,30 @@ vector<string> collectTargets(const Arguments &args) {
   return results;
 }
 
-int main(int argc, char *argv[]) {
-  Arguments args(argc, argv);
 
-  if(args.has("--help") || args.has("-h") || args.has("-?")) {
-    printHelp();
+class BuildStep {
+  
+  private:
+    vector<string> dependency;
+};
+
+int main(int argc, char *argv[]) {
+  Arguments args;
+
+  const auto OPT_FILE = args.defOption({"-f", "--file"}, "Read FILE as a remodelfile.");
+  const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");
+  const auto OPT_HELP = args.defFlag({"--help", "-?", "-h"}, "Show this help.");
+  
+  args.parse(argc, argv);
+
+  if(args.getFlag(OPT_HELP)) {
+    args.showHelp(std::cout);
     return 0;
   }
 
   // collect all arguments
-  string targetFile = args.hasAfter("-f","remodelfile");
-  string currentDir = args.hasAfter("-C", ".");
+  string targetFile = args.getOption(OPT_FILE,"remodelfile");
+  string currentDir = args.getOption(OPT_DIR, ".");
   vector<string> currentTargets = collectTargets(args);
 
   // change directory if necessary
@@ -57,11 +70,12 @@ int main(int argc, char *argv[]) {
   const auto rules = parseFile(targetFile);
   for(auto r: rules) {
     for(BuildNode &t : r.targets) {
-      if(definedTargets.find(t.name) != definedTargets.end()) {
-        cerr << "Multiple rules for target `"<<t.name<<"'!\n";
+      const string &tn = t.name;
+      if(definedTargets.find(tn) != definedTargets.end()) {
+        cerr << "Multiple rules for target `"<<tn<<"'!\n";
         return -1;
       }
-      definedTargets.insert(t.name);
+      definedTargets.insert(tn);
     }
   }
 

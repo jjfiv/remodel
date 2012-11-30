@@ -12,6 +12,7 @@ sources = [
   'src/ProcessManager.cpp',
   'src/Token.cpp',
   'src/Parser.cpp',
+  'src/Arguments.cpp',
   ]
 
 program = env.Program('remodel', ['src/main.cpp'] + sources)

@@ -1,43 +1,52 @@
 #ifndef _ARGUMENTS_H
 #define _ARGUMENTS_H
 
+#include "common.h"
+#include <set>
+#include <map>
+
 class Arguments {
   public:
-    Arguments(int argc, char *argv[]) {
-      for(int i=1; i<argc; i++)
-        parameters.push_back(argv[i]);
-    }
+    struct ArgDef {
+      ArgDef(const vector<string> &n, string d, bool o)
+        : names(n), description(d), option(o) { }
+      string key() const { return names.front(); }
+      bool matches(const string &arg) {
+        for(const auto &n : names)
+          if(n == arg) return true;
+        return false;
+      }
+      vector<string> names;
+      string description;
+      bool option;
+    };
+  public:
 
     size_t size() const { return parameters.size(); }
 
-    bool has(const string &str) const {
-      for(const string &p : parameters) {
-        if(p == str) return true;
-      }
-      return false;
-    }
+    // setup
+    string defFlag(vector<string> names, string description);
+    string defOption(vector<string> names, string description);
 
-    const string& hasAfter(const string &toFind, const string &fallback) const {
-      for(size_t i=0; i<size()-1; i++) {
-        if(parameters[i] == toFind) {
-          return parameters[i+1];
-        }
-      }
-      return fallback;
-    }
+    // parse
+    void parse(int argc, char *argv[]);
+
+    // help
+    void showHelp(std::ostream &out) const;
+
+    // query
+    bool getFlag(const string &str) const;
+    const string& getOption(const string &toFind, const string &fallback) const;
 
     const string& operator[](size_t index) const { return parameters[index]; }
 
-    friend std::ostream& operator<<(std::ostream& out, const Arguments &args) {
-      out << "[";
-      for(size_t i=0; i<args.size(); i++) {
-        if(i != 0) out << ", ";
-        out << args[i];
-      }
-      return out << "]";
-    }
   
   private:
+    string progName;
+    vector<ArgDef> argDefs;
+
+    std::set<string> flags;
+    std::map<string, string> options;
     vector<string> parameters;
 };
 
