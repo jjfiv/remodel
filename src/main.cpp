@@ -1,12 +1,24 @@
 #include "FileOps.h"
 #include "ProcessManager.h"
+#include "Parser.h"
 
 
 int main(int argc, char *argv[]) {
   cout << "remodel\n";
 
+  if(argc != 2) {
+    cerr << "remodel currently takes a file name as input...\n";
+    return -1;
+  }
+
+  const auto rules = parseFile(argv[1]);
+  for(auto r: rules) {
+    cout << r << '\n';
+  }
+  cout << "\n";
+
   string testFile = "SConstruct";
-  cout << "sig("<<testFile<<") = " << fileSignature(testFile) << "\n";
+  cout << fileSignature(testFile) << "  " << testFile << "\n";
   //Process pmd5("md5sum "+testFile);
   //pmd5.wait();
   ProcessManager pm;
