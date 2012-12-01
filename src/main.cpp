@@ -18,101 +18,20 @@ struct FileState {
 };
 
 // defines the hashes of all the dependencies of a file when it was built
-class BuildRecord {
-  public:
-    BuildRecord(const string &n, const string &h)
-      : complete(false), name(n), hash(h) { }
-
-    BuildRecord(const BuildStep *step, std::map<int, FileState> targetStates) {
-      complete = false;
-      
-      name = step->name;
-      const FileState &fs = targetStates[step->id];
-      if(!fs.fileExists()) return;
-      hash = fs.hash;
-
-      for(auto *d : step->deps) {
-        const FileState &dfs = targetStates[d->id];
-        if(!dfs.fileExists()) return;
-        depHash[d->name] = dfs.hash;
-      }
-      
-      complete = true;
-    }
-    
-    bool operator==(const BuildRecord &rhs) {
-      if(!complete || !rhs.complete) return false;
-      if(name != rhs.name) return false;
-      if(hash != rhs.hash) return false;
-
-      if(depHash.size() != rhs.depHash.size())
-        return false;
-
-      for(auto mine : depHash) {
-        auto other = rhs.depHash.find(mine.first);
-        if(other==rhs.depHash.end() || other->second != mine.second)
-          return false;
-      }
-
-      return true;
-    }
-
-    bool hasDependency(const string &fileName) {
-      assert(complete);
-      return depHash.find(fileName) != depHash.end();
-    }
-
-
-    std::ostream& print(std::ostream &out) const {
-      if(!complete) {
-        return out << "Incomplete BuildRecord";
-      }
-
-
-      out << name << ":" << hash;
-      
-      if(depHash.size()) {
-        out << " <- {";
-        for(auto dep : depHash) {
-          out << dep.first << ":" << dep.second << " ";
-        }
-        out << "}";
-      }
-
-      return out;
-    }
-
-    friend std::ostream& operator<<(std::ostream &out, const BuildRecord &b) { return b.print(out); }
-
-    bool complete;
-  private:
-    string name;
-    string hash;
-    std::map<string, string> depHash;
-};
+#include "TargetBuilder.h"
 
 
 bool buildTarget(const BuildGraph &buildSet, const string target) {
-  ProcessManager pm;
-
+  TargetBuilder builder(buildSet, target);
+  
   int actions = 0;
-  std::set<const BuildStep*> targetSet = buildSet.getTargetAndDeps(target);
-  std::map<int, FileState> targetStates;
-
-  // load up the states of the current files
-  for(auto *step : targetSet) {
-    targetStates[step->id] = FileState(fileSignature(step->name));
-  }
 
   while(1) {
     bool allDone = true;
     bool anyReady = false;
     bool anyNew = false;
 
-    for(auto *step : targetSet) {
-      BuildRecord r(step, targetStates);
-      show(r);
-
+    for(auto *step : builder.targetSteps) {
       if(step->isDone())
         continue;
 
@@ -132,21 +51,7 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
         anyReady = true;
         actions++;
 
-        // only run 1 process at a time for this target
-        if(targetStates[step->id].started)
-          continue;
-
-        anyNew = true;
-
-        const string &cmd = step->action;
-        // echo action we're about to take
-        cout << cmd << '\n';
-
-        if(!pm.spawn(cmd, step)) {
-          cerr << "Spawning `" << cmd << "' failed!\n";
-          exit(-1);
-        }
-        targetStates[step->id].started = true;
+        builder.startTarget(step);
       }
     }
 
@@ -162,32 +67,16 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
 
     // block if there aren't any new processes this time, no point in going around again
     bool block = !anyNew;
+    builder.collectReadyChildren(block);
+  }
 
-    // collect all processes we started this time about
-    while(pm.numChildren() != 0) {
+  while(builder.hasChildren()) {
+    builder.awaitChild(true);
+  }
 
-      auto res = pm.waitNextChild( block );
-      if(!res.valid) {
-        break;
-      }
-
-      if(!res.success()) {
-        cerr << "Command failed.\n";
-        exit(-1);
-      }
-
-
-      const BuildStep *step = (const BuildStep*)res.data;
-      targetStates[step->id].built = true;
-      string hash = fileSignature(step->name);
-      targetStates[step->id].hash = hash;
-      if(hash == "") {
-        cerr << "Action `" << step->action << "' failed to build target `" << step->name << "'";
-        exit(-1);
-      }
-
-      // if go around and check for any other finished processes
-      if(block) block = false;
+  for(auto *step : builder.targetSteps) {
+    if(!step->phony()) {
+      cout << builder.recordForTarget(step) << "\n";
     }
   }
 

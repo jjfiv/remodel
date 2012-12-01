@@ -9,7 +9,7 @@ bool ProcessManager::spawn(const string &cmd, const void *data) {
 
   string local(cmd);
 
-  child = fork();
+  child = vfork();
   
   // print error and go into error state
   if(child == -1) {

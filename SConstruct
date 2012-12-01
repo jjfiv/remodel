@@ -16,6 +16,9 @@ sources = [
 
   'src/BuildStep.cpp',
   'src/BuildGraph.cpp',
+  'src/BuildRecord.cpp',
+
+  'src/TargetBuilder.cpp',
   ]
 
 program = env.Program('remodel', ['src/main.cpp'] + sources)
