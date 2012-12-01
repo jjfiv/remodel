@@ -13,30 +13,9 @@ class BuildRule {
     void addTarget(const string &b) { targets.push_back(b); }
     void addSource(const string &b) { sources.push_back(b); }
 
-    std::ostream& print(std::ostream& out) const {
-      for(size_t i=0; i<targets.size(); i++) {
-        if(i != 0) out << Syntax::Comma << " ";
-        out << targets[i];
-      }
+    std::ostream& print(std::ostream& out) const;
 
-      if(hasSources()) {
-        out << " " << Syntax::LeftArrow << " ";
-
-        for(size_t i=0; i<sources.size(); i++) {
-          if(i != 0) out << Syntax::Comma << " ";
-          out << sources[i];
-        }
-      }
-
-      if(hasAction()) {
-        out << Syntax::Colon << " " << action;
-      }
-
-      return out;
-    }
-
-    friend std::ostream& operator<<(std::ostream &out, const BuildRule &b) { b.print(out); return out; }
-
+    friend std::ostream& operator<<(std::ostream &out, const BuildRule &b) { return b.print(out); }
 
     vector<string> targets;
     vector<string> sources;

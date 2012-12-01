@@ -14,6 +14,27 @@ static void unexpectedToken(const Token &token) {
   exit(-1);
 }
 
+std::ostream& BuildRule::print(std::ostream &out) const {
+  for(size_t i=0; i<targets.size(); i++) {
+    if(i != 0) out << Syntax::Comma << " ";
+    out << targets[i];
+  }
+
+  if(hasSources()) {
+    out << " " << Syntax::LeftArrow << " ";
+
+    for(size_t i=0; i<sources.size(); i++) {
+      if(i != 0) out << Syntax::Comma << " ";
+      out << sources[i];
+    }
+  }
+
+  if(hasAction()) {
+    out << Syntax::Colon << " " << action;
+  }
+
+  return out;
+};
 
 static Token readNextToken(std::istream &input) {
   // constants
