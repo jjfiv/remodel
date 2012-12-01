@@ -6,18 +6,6 @@
 #include "BuildGraph.h"
 #include <fstream>
 
-// mutable FileState object; from not existing to started to built
-struct FileState {
-  public:
-    FileState(const string &h="") : started(false), built(false), hash(h) { }
-    bool fileExists() const { return hash.size() != 0; }
-
-    bool started;
-    bool built;
-    string hash;
-};
-
-// defines the hashes of all the dependencies of a file when it was built
 #include "TargetBuilder.h"
 
 
