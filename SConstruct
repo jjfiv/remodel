@@ -13,6 +13,9 @@ sources = [
   'src/Token.cpp',
   'src/Parser.cpp',
   'src/Arguments.cpp',
+
+  'src/BuildStep.cpp',
+  'src/BuildGraph.cpp',
   ]
 
 program = env.Program('remodel', ['src/main.cpp'] + sources)

@@ -1,0 +1,6 @@
+DEFAULT <- ex/baz/baz, ex/baz/graph.png
+ex/baz/baz <- ex/baz/remodelfile: "./remodel -C ex/baz"
+ex/baz/graph.dot <- ex/baz/remodelfile: "./remodel -C ex/baz --graph graph.dot"
+ex/baz/graph.png <- ex/baz/graph.dot: "dot -Tpng -o ex/baz/graph.png ex/baz/graph.dot"
+
+

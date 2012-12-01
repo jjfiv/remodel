@@ -1,6 +1,8 @@
 *.o
 *~
 *.pyc
+*.dot
+*.png
 .sconsign.dblite
 .remodel
 remodel

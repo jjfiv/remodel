@@ -3,172 +3,10 @@
 #include "Parser.h"
 #include "Arguments.h"
 #include "remodel.h"
+#include "BuildGraph.h"
+#include <fstream>
 
-class BuildIDTable {
-  public:
-    void put(const BuildNode &node) { 
-      const string &name = node.name;
-      if(ids.find(name) == ids.end()) {
-        size_t id = ids.size();
-        ids[name] = id;
-      }
-    }
-    int get(const BuildNode &node) {
-      return ids[node.name];
-    }
-    void print(std::ostream &out) const {
-      for(auto it : ids) {
-        out << "  " <<  it.second << ". " << it.first << "\n";
-      }
-    }
-    size_t size() const { return ids.size(); }
-    std::map<string, int> all() const { return ids; }
-  private:
-    std::map<string, int> ids;
-};
-
-class BuildStep {
-  public:
-    BuildStep(int i, const string &n) : id(i), name(n) { }
-
-    bool phony() const { return name == Syntax::DefaultTarget; }
-    bool hasAction() const { return action.size() != 0; }
-    bool isSource() const { return !hasDependencies() && !hasAction(); }
-    bool hasDependencies() const { return deps.size() != 0; }
-    bool shouldClean() const { return !isSource() && !phony(); }
-
-    std::ostream& print(std::ostream &out) const {
-      out << name;
-      
-      if(hasDependencies()) {
-        out << " : {";
-        for(size_t i=0; i<deps.size(); i++) {
-          if(i != 0) out << ",";
-          out << deps[i]->id;
-        }
-        out << "}";
-      }
-
-      if(hasAction()) {
-        out << " $ " << action;
-      }
-      
-      return out;
-    }
-
-    friend std::ostream& operator<<(std::ostream &out, const BuildStep &self) { return self.print(out); }
-
-    int id;
-    string name;
-    string action;
-    vector<BuildStep*> deps;
-
-    bool depsOn(int other) const {
-      for(BuildStep *bs : deps) {
-        if(bs->id == other || bs->depsOn(other))
-          return true;
-      }
-      return false;
-    }
-
-    bool isReady() const {
-      for(auto *bs : deps) {
-        if(!bs->isDone()) return false;
-      }
-      return true;
-    }
-
-    // mutable state :(
-    bool isDone() const {
-      if(!phony()) {
-        // semi-gmake version
-        return canOpenFile(name);
-      }
-      return isReady(); // equal logically to "are my dependencies done?"
-    }
-};
-
-class BuildSet {
-  public:
-    BuildSet(const vector<BuildRule> &rules) {
-      BuildIDTable bs;
-
-      for(auto r: rules) {
-        for(BuildNode &t : r.targets) { bs.put(t); }
-        for(BuildNode &s : r.sources) { bs.put(s); }
-      }
-
-      steps.resize(bs.size());
-      for(auto &it : bs.all()) {
-        int id = it.second;
-        const string &name = it.first;
-        steps[id] = new BuildStep(id, name);
-      }
-
-      // insert dependencies based on steps
-      for(auto r: rules) {
-        for(BuildNode &t : r.targets) {
-          BuildStep *cur = steps[bs.get(t)];
-
-          for(BuildNode &src : r.sources) {
-            BuildStep *dep = steps[bs.get(src)];
-            cur->deps.push_back(dep);
-          }
-
-          cur->action = r.action.get();
-        }
-      }
-
-    };
-
-    ~BuildSet() {
-      for(const BuildStep *bs : steps) {
-        assert(bs);
-        delete bs;
-      }
-    }
-   
-    const std::set<const BuildStep*> getTargetAndDeps(const string &name) const {
-      std::set<const BuildStep*> result;
-      
-      // initial set
-      result.insert(getTarget(name));
-
-      while(1) {
-        std::set<const BuildStep*> newSet;
-        
-        for(auto *t : result) {
-          for(auto *d : t->deps) {
-            if(result.find(d) != result.end())
-              continue;
-            newSet.insert(d);
-          }
-        }
-
-        if(!newSet.size())
-          break;
-
-        for(auto *t : newSet)
-          result.insert(t);
-      }
-
-      return result;
-    }
-
-    const BuildStep* getTarget(const string &name) const {
-      for(auto *bs : steps) {
-        if(bs->name == name) return bs;
-      }
-      return nullptr;
-    }
-    const BuildStep* getTarget(int id) const { return steps[id]; }
-    const vector<BuildStep*>& getVector() const { return steps; }
-
-  private:
-    vector<BuildStep*> steps;
-};
-
-bool buildTarget(const BuildSet &buildSet, const string target) {
+bool buildTarget(const BuildGraph &buildSet, const string target) {
   ProcessManager pm;
 
   int actions = 0;
@@ -177,7 +15,9 @@ bool buildTarget(const BuildSet &buildSet, const string target) {
   while(1) {
     bool allDone = true;
     bool anyReady = false;
+
     for(auto *step : targetSet) {
+      show(*step);
       if(step->isDone())
         continue;
 
@@ -187,15 +27,17 @@ bool buildTarget(const BuildSet &buildSet, const string target) {
       if(!step->isReady())
         continue;
 
-      // not all blocked, this one is ready, so start it
-      anyReady = true;
-      actions++;
+      if(step->hasAction()) {
+        // not all blocked, this one is ready, so start it
+        anyReady = true;
+        actions++;
 
-      // echo action we're about to take
-      cout << step->action << '\n';
-      if(pm.spawn(step->action) < 0) {
-        cerr << "Spawning `" << step->action << "' failed!\n";
-        exit(-1);
+        // echo action we're about to take
+        cout << step->action << '\n';
+        if(pm.spawn(step->action) < 0) {
+          cerr << "Spawning `" << step->action << "' failed!\n";
+          exit(-1);
+        }
       }
     }
 
@@ -222,7 +64,7 @@ bool buildTarget(const BuildSet &buildSet, const string target) {
   return actions != 0;
 }
 
-void cleanTargets(const BuildSet &buildSet) {
+void cleanTargets(const BuildGraph &buildSet) {
   cout << "remodel: clean\n";
   for(auto *bs : buildSet.getVector()) {
     if(bs->shouldClean()) {
@@ -240,6 +82,7 @@ int main(int argc, char *argv[]) {
   // hooray for C++11 initializer lists :D
   const auto OPT_FILE = args.defOption({"-f", "--file"}, "Read FILE as a remodelfile.");
   const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");
+  const auto OPT_GRAPH = args.defOption({"--graph"}, "Output a Graphviz dot file to FILE");
   const auto OPT_CLEAN = args.defFlag({"--clean"}, "Delete all generated files.");
   const auto OPT_HELP = args.defFlag({"--help", "-?", "-h"}, "Show this help.");
   
@@ -275,7 +118,7 @@ int main(int argc, char *argv[]) {
   }
 
 
-  BuildSet buildSet(parseFile(targetFile));
+  BuildGraph buildSet(parseFile(targetFile));
 
   // ensure that arguments given to build are defined
   for(auto t: currentTargets) {
@@ -285,9 +128,17 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  string dotFile = args.getOption(OPT_GRAPH, "");
+  if(dotFile.size() != 0) {
+    std::ofstream fp(dotFile);
+    buildSet.putDotFile(fp, "remodel");
+    
+    cout << "created dot file `"<<dotFile<<"'\n";
+    return 0;
+  }
+
   if(args.getFlag(OPT_CLEAN)) {
     cleanTargets(buildSet);
-    return 0;
   }
 
   for(auto t: currentTargets) {
