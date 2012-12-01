@@ -14,7 +14,7 @@ static void unexpectedToken(const Token &token) {
   exit(-1);
 }
 
-std::ostream& BuildRule::print(std::ostream &out) const {
+std::ostream& ParseRule::print(std::ostream &out) const {
   for(size_t i=0; i<targets.size(); i++) {
     if(i != 0) out << Syntax::Comma << " ";
     out << targets[i];
@@ -88,8 +88,8 @@ static Token readNextToken(std::istream &input) {
   return Token(partial);
 }
 
-static BuildRule parseRule(std::deque<Token> &tokens) {
-  BuildRule rule;
+static ParseRule parseRule(std::deque<Token> &tokens) {
+  ParseRule rule;
 
   // get targets
   while(1) {
@@ -139,7 +139,7 @@ static BuildRule parseRule(std::deque<Token> &tokens) {
   return rule;
 }
 
-vector<BuildRule> parseFile(const string &fileName) {
+vector<ParseRule> parseFile(const string &fileName) {
   //cout << "parsing \""<<fileName<<"\"\n";
 
   std::ifstream fp(fileName);
@@ -158,10 +158,10 @@ vector<BuildRule> parseFile(const string &fileName) {
     tokens.push_back(t);
   }
 
-  vector<BuildRule> rules;
+  vector<ParseRule> rules;
 
   while(tokens.size()) {
-    BuildRule rule = parseRule(tokens);
+    ParseRule rule = parseRule(tokens);
     if(!rule.valid()) {
       cerr << "Bad rule.\n";
       break;

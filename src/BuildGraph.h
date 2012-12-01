@@ -7,7 +7,7 @@
 
 class BuildGraph {
   public:
-    BuildGraph(const vector<BuildRule> &rules);
+    BuildGraph(const vector<ParseRule> &rules);
     ~BuildGraph();
    
     const std::set<const BuildStep*> getTargetAndDeps(const string &name) const;

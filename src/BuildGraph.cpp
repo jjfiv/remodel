@@ -23,7 +23,7 @@ class BuildIDTable {
     std::map<string, int> ids;
 };
 
-BuildGraph::BuildGraph(const vector<BuildRule> &rules) {
+BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
   BuildIDTable bs;
 
   for(auto r: rules) {

@@ -3,7 +3,7 @@
 
 #include "Syntax.h"
 
-class BuildRule {
+class ParseRule {
   public:
     bool valid() const { return hasTargets() && hasSources(); }
     bool hasTargets() const { return targets.size() != 0; }
@@ -15,7 +15,7 @@ class BuildRule {
 
     std::ostream& print(std::ostream& out) const;
 
-    friend std::ostream& operator<<(std::ostream &out, const BuildRule &b) { return b.print(out); }
+    friend std::ostream& operator<<(std::ostream &out, const ParseRule &b) { return b.print(out); }
 
     vector<string> targets;
     vector<string> sources;
@@ -23,7 +23,7 @@ class BuildRule {
 };
 
 //--- parse a file to a list of rules
-vector<BuildRule> parseFile(const string &fileName);
+vector<ParseRule> parseFile(const string &fileName);
 
 #endif
 
