@@ -1,4 +1,5 @@
 #include "ProcessManager.h"
+#include "remodel.h" // for ShellCommand
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -24,7 +25,7 @@ bool ProcessManager::spawn(const string &cmd, const void *data) {
     return true;
   }
 
-  const char* interpreter = "/bin/sh";
+  const char* interpreter = remodel::ShellCommand;
   // child continues on to exec
   execl(interpreter, interpreter, "-c", local.c_str());
   perror("execl");

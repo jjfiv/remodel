@@ -5,6 +5,7 @@
 
 namespace remodel {
   const string InfoDir = ".remodel";
+  const char* const ShellCommand = "/bin/sh";
 };
 
 #endif
