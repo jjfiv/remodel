@@ -10,11 +10,14 @@ def do_cmd(cmd):
 def test(cmd, exprc=0):
   rc, out, err = do_cmd(cmd)
   if(rc != exprc):
+    print "- " + cmd
     print(out)
     print(err)
     sys.exit(-1);
+  print "+ %3d <- %s" % (rc, cmd)
 
 def run():
+  test("./remodel -C ex/baz --clean")
   test("./remodel -C ex/baz")
   test("./remodel -C ex/baz stupid", 255)
   test("./remodel -f ex/badRules", 255)

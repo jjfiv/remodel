@@ -55,6 +55,9 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
         anyReady = true;
         actions++;
 
+        // only run 1 process at a time for this target
+        if(targetStates[step->id].started)
+          continue;
 
         const string &cmd = step->action;
         // echo action we're about to take
@@ -79,7 +82,7 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
     }
 
     // collect all processes we started this time about
-    while(pm.numChildren() != 0) {
+    if(pm.numChildren() != 0) {
       auto res = pm.waitNextChild();
       if(!res.success()) {
         cerr << "Command failed.\n";
