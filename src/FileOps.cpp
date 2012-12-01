@@ -30,12 +30,11 @@ string fileSignature(const string &path) {
   MD5_CTX ctx;
   unsigned char csum[MD5_DIGEST_LENGTH];
 
-  if(MD5_Init(&ctx) == 0)
-    return "MD5_Init error";
+  assert(MD5_Init(&ctx) != 0);
 
   FILE *fp = fopen(path.c_str(), "rb");
   if(!fp)
-    return "File Doesn't Exist";
+    return "";
 
   char buffer[HashBufferSize];
   while(!feof(fp)) {
@@ -44,12 +43,10 @@ string fileSignature(const string &path) {
     if(len <= 0)
       break;
     
-    if(MD5_Update(&ctx, buffer, len) == 0)
-      return "MD5_Update error";
+    assert(MD5_Update(&ctx, buffer, len) != 0);
   }
 
-  if(MD5_Final(csum, &ctx) == 0)
-    return "MD5_Final error";
+  assert(MD5_Final(csum, &ctx) != 0);
 
   return stringFromData(csum, MD5_DIGEST_LENGTH);
 }

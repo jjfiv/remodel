@@ -1,28 +1,30 @@
 #ifndef _PROCESSMANAGER_H
 #define _PROCESSMANAGER_H
 
-#include <set>
+#include <map>
 #include <unistd.h> // for pid_t
 #include "common.h"
 
 struct ProcessResult {
-  ProcessResult(pid_t pid, int ret) : id(pid), status(ret) { }
-  bool valid() const { return id >= 0; }
-  bool success() const { return valid() && status == 0; }
-  pid_t id;
+  ProcessResult() : valid(false), data(nullptr), status(-1) { }
+  ProcessResult(const void *ptr, int ret) : valid(true), data(ptr), status(ret) { }
+  bool success() const { return valid && status == 0; }
+  
+  const bool valid;
+  const void *data;
   int status;
 };
 
 class ProcessManager {
   public:
     // non-blocking call to create a child
-    pid_t spawn(const string &cmd);
+    bool spawn(const string &cmd, const void *data);
     // blocking call to wait for the next child to finish
     ProcessResult waitNextChild();
     // return the number of children left
-    size_t numChildren() const { return children.size(); }
+    size_t numChildren() const { return childData.size(); }
   private:
-    std::set<pid_t> children;
+    std::map<pid_t, const void*> childData;
 };
 
 #endif

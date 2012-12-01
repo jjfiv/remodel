@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 
 
-pid_t ProcessManager::spawn(const string &cmd) {
+bool ProcessManager::spawn(const string &cmd, const void *data) {
   pid_t child = -1;
 
   string local(cmd);
@@ -13,15 +13,15 @@ pid_t ProcessManager::spawn(const string &cmd) {
   // print error and go into error state
   if(child == -1) {
     perror("vfork");
-    return -1;
+    return false;
   }
 
   // parent receives child pid
   if(child != 0) {
     // assert that this pid_t is not already in the set...
-    assert(children.find(child) == children.end());
-    children.insert(child);
-    return child;
+    assert(childData.find(child) == childData.end());
+    childData[child] = data;
+    return true;
   }
 
   const char* interpreter = "/bin/sh";
@@ -40,15 +40,18 @@ ProcessResult ProcessManager::waitNextChild() {
   pid_t whom = wait(&status);
   if(whom < 0) {
     perror("wait");
-    return ProcessResult(-1, -1);
+    return ProcessResult();
   }
 
-  auto it = children.find(whom);
-  assert(it != children.end());
+  // grab user data pointer
+  auto it = childData.find(whom);
+  assert(it != childData.end());
+  const void *ptr = it->second;
 
-  children.erase(it);
+  // erase this process entry
+  childData.erase(it);
 
-  return ProcessResult(whom, status);
+  return ProcessResult(ptr, status);
 }
 
 

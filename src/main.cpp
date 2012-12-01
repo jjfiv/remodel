@@ -6,20 +6,43 @@
 #include "BuildGraph.h"
 #include <fstream>
 
+struct FileState {
+  public:
+    FileState(const string &h="") : started(false), built(false), hash(h) { }
+    bool fileExists() const { return hash.size() != 0; }
+
+    bool started;
+    bool built;
+    string hash;
+};
+
+class BuildRecord { };
+
+
 bool buildTarget(const BuildGraph &buildSet, const string target) {
   ProcessManager pm;
 
   int actions = 0;
   std::set<const BuildStep*> targetSet = buildSet.getTargetAndDeps(target);
+  std::map<int, FileState> targetStates;
+
+  // load up the states of the current files
+  for(auto *step : targetSet) {
+    targetStates[step->id] = FileState(fileSignature(step->name));
+  }
 
   while(1) {
     bool allDone = true;
     bool anyReady = false;
 
     for(auto *step : targetSet) {
-      show(*step);
       if(step->isDone())
         continue;
+
+      if(step->isSource()) {
+        cerr << "Source file `" << step->name << "' could not be found.\n";
+        exit(-1);
+      }
 
       // not all done, this one isn't, at least
       allDone = false;
@@ -32,12 +55,16 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
         anyReady = true;
         actions++;
 
+
+        const string &cmd = step->action;
         // echo action we're about to take
-        cout << step->action << '\n';
-        if(pm.spawn(step->action) < 0) {
-          cerr << "Spawning `" << step->action << "' failed!\n";
+        cout << cmd << '\n';
+
+        if(!pm.spawn(cmd, step)) {
+          cerr << "Spawning `" << cmd << "' failed!\n";
           exit(-1);
         }
+        targetStates[step->id].started = true;
       }
     }
 
@@ -56,6 +83,15 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
       auto res = pm.waitNextChild();
       if(!res.success()) {
         cerr << "Command failed.\n";
+        exit(-1);
+      }
+
+      const BuildStep *step = (const BuildStep*)res.data;
+      targetStates[step->id].built = true;
+      string hash = fileSignature(step->name);
+      targetStates[step->id].hash = hash;
+      if(hash == "") {
+        cerr << "Action `" << step->action << "' failed to build target `" << step->name << "'";
         exit(-1);
       }
     }
