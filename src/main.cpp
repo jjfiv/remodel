@@ -34,6 +34,7 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
   while(1) {
     bool allDone = true;
     bool anyReady = false;
+    bool anyNew = false;
 
     for(auto *step : targetSet) {
       if(step->isDone())
@@ -59,6 +60,8 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
         if(targetStates[step->id].started)
           continue;
 
+        anyNew = true;
+
         const string &cmd = step->action;
         // echo action we're about to take
         cout << cmd << '\n';
@@ -81,13 +84,22 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
       exit(-1);
     }
 
+    // block if there aren't any new processes this time, no point in going around again
+    bool block = !anyNew;
+
     // collect all processes we started this time about
-    if(pm.numChildren() != 0) {
-      auto res = pm.waitNextChild();
+    while(pm.numChildren() != 0) {
+
+      auto res = pm.waitNextChild( block );
+      if(!res.valid) {
+        break;
+      }
+
       if(!res.success()) {
         cerr << "Command failed.\n";
         exit(-1);
       }
+
 
       const BuildStep *step = (const BuildStep*)res.data;
       targetStates[step->id].built = true;
@@ -97,6 +109,9 @@ bool buildTarget(const BuildGraph &buildSet, const string target) {
         cerr << "Action `" << step->action << "' failed to build target `" << step->name << "'";
         exit(-1);
       }
+
+      // if go around and check for any other finished processes
+      if(block) block = false;
     }
   }
 
@@ -123,6 +138,7 @@ int main(int argc, char *argv[]) {
   const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");
   const auto OPT_GRAPH = args.defOption({"--graph"}, "Output a Graphviz dot file to FILE");
   const auto OPT_CLEAN = args.defFlag({"--clean"}, "Delete all generated files.");
+  const auto OPT_REMAKE = args.defFlag({"--remake"}, "Delete all generated files and make targets anyway.");
   const auto OPT_HELP = args.defFlag({"--help", "-?", "-h"}, "Show this help.");
   
   args.parse(argc, argv);
@@ -176,8 +192,9 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  if(args.getFlag(OPT_CLEAN)) {
+  if(args.getFlag(OPT_CLEAN) || args.getFlag(OPT_REMAKE)) {
     cleanTargets(buildSet);
+    if(!args.getFlag(OPT_REMAKE)) exit(0);
   }
 
   for(auto t: currentTargets) {

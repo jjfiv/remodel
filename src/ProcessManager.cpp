@@ -35,11 +35,19 @@ bool ProcessManager::spawn(const string &cmd, const void *data) {
   return -1;
 }
 
-ProcessResult ProcessManager::waitNextChild() {
+ProcessResult ProcessManager::waitNextChild(bool block) {
   int status;
-  pid_t whom = wait(&status);
-  if(whom < 0) {
-    perror("wait");
+  pid_t whom = -1;
+  if(block) {
+    whom = wait(&status);
+  } else {
+    whom = waitpid(-1, &status, WNOHANG);
+  }
+  if(whom <= 0) {
+    if(whom < 0 || block) {
+      perror("wait");
+      exit(-1);
+    }
     return ProcessResult();
   }
 

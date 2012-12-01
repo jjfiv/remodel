@@ -20,7 +20,7 @@ class ProcessManager {
     // non-blocking call to create a child
     bool spawn(const string &cmd, const void *data);
     // blocking call to wait for the next child to finish
-    ProcessResult waitNextChild();
+    ProcessResult waitNextChild(bool shouldBlock=true);
     // return the number of children left
     size_t numChildren() const { return childData.size(); }
   private:
