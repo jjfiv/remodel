@@ -12,63 +12,13 @@
 bool buildTarget(const BuildGraph &buildSet, const string target) {
   TargetBuilder builder(buildSet, target);
   
-  int actions = 0;
+  bool somethingChanged = builder.build();
 
-  while(1) {
-    bool allDone = true;
-    bool anyReady = false;
-    bool anyNew = false;
-
-    for(auto *step : builder.targetSteps) {
-      if(step->isDone())
-        continue;
-
-      if(step->isSource()) {
-        cerr << "Source file `" << step->name << "' could not be found.\n";
-        exit(-1);
-      }
-
-      // not all done, this one isn't, at least
-      allDone = false;
-
-      if(!step->isReady())
-        continue;
-
-      if(step->hasAction()) {
-        // not all blocked, this one is ready, so start it
-        anyReady = true;
-        actions++;
-
-        builder.startTarget(step);
-      }
-    }
-
-    // terminate when finished building this target
-    if(allDone)
-      break;
-
-    // if we can't make forward progress, catch this condition
-    if(!anyReady) {
-      cerr << "Not done building, but nothing ready to build :(\n";
-      exit(-1);
-    }
-
-    // block if there aren't any new processes this time, no point in going around again
-    bool block = !anyNew;
-    builder.collectReadyChildren(block);
+  for(const BuildRecord &r : builder.getBuildRecords()) {
+    cout << r << "\n";
   }
 
-  while(builder.hasChildren()) {
-    builder.awaitChild(true);
-  }
-
-  for(auto *step : builder.targetSteps) {
-    if(!step->phony()) {
-      cout << builder.recordForTarget(step) << "\n";
-    }
-  }
-
-  return actions != 0;
+  return somethingChanged;
 }
 
 void cleanTargets(const BuildGraph &buildSet) {

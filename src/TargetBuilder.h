@@ -10,21 +10,23 @@ class TargetBuilder {
   public:
     TargetBuilder(const BuildGraph &graph, const string &target, int numJobs=-1);
 
-    BuildRecord recordForTarget(const BuildStep* step) const;
+    bool build();
+    vector<BuildRecord> getBuildRecords() const;
 
+  private:
+    BuildRecord recordForTarget(const BuildStep* step) const;
     bool startTarget(const BuildStep *step);
+    
     bool awaitChild(bool block);
     void collectReadyChildren(bool expectOne);
-
     bool hasChildren() const { return pm.numChildren() > 0; }
 
-    std::set<const BuildStep*> targetSteps;
-  private:
     string updateHash(const BuildStep *step);
 
     int maxChildren;
     ProcessManager pm;
     std::map<int, TargetState> targetStates;
+    std::set<const BuildStep*> targetSteps;
 };
 
 #endif

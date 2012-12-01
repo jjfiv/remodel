@@ -75,3 +75,70 @@ void TargetBuilder::collectReadyChildren(bool expectOne) {
   }
 }
 
+vector<BuildRecord> TargetBuilder::getBuildRecords() const {
+  vector<BuildRecord> results;
+  results.reserve(targetSteps.size());
+
+  for(auto *s : targetSteps) {
+    if(!s->phony()) {
+      results.push_back(recordForTarget(s));
+    }
+  }
+
+  return results;
+}
+
+bool TargetBuilder::build() {
+  int actions = 0;
+
+  while(1) {
+    bool allDone = true;
+    bool anyReady = false;
+    bool anyNew = false;
+
+    for(auto *step : targetSteps) {
+      if(step->isDone())
+        continue;
+
+      if(step->isSource()) {
+        cerr << "Source file `" << step->name << "' could not be found.\n";
+        exit(-1);
+      }
+
+      // not all done, this one isn't, at least
+      allDone = false;
+
+      if(!step->isReady())
+        continue;
+
+      if(step->hasAction()) {
+        // not all blocked, this one is ready, so start it
+        anyReady = true;
+        actions++;
+
+        startTarget(step);
+      }
+    }
+
+    // terminate when finished building this target
+    if(allDone)
+      break;
+
+    // if we can't make forward progress, catch this condition
+    if(!anyReady) {
+      cerr << "Not done building, but nothing ready to build :(\n";
+      exit(-1);
+    }
+
+    // block if there aren't any new processes this time, no point in going around again
+    bool block = !anyNew;
+    collectReadyChildren(block);
+  }
+
+  while(hasChildren()) {
+    awaitChild(true);
+  }
+
+  return actions != 0;
+}
+
