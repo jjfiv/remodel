@@ -76,7 +76,7 @@ static BuildRule parseRule(std::deque<Token> &tokens) {
     if(!target.isNode())
       unexpectedToken(target);
 
-    rule.addTarget(BuildNode(target.getString()));
+    rule.addTarget(target.getString());
     tokens.pop_front();
 
     if(!tokens.front().isComma()) {
@@ -96,7 +96,7 @@ static BuildRule parseRule(std::deque<Token> &tokens) {
     if(!source.isNode())
       unexpectedToken(source);
 
-    rule.addSource(BuildNode(source.getString()));
+    rule.addSource(source.getString());
     tokens.pop_front();
 
     if(!tokens.front().isComma()) {
@@ -111,7 +111,7 @@ static BuildRule parseRule(std::deque<Token> &tokens) {
     if(!action.isAction())
       unexpectedToken(action);
 
-    rule.action = BuildAction(action.getString());
+    rule.action = action.getString();
     tokens.pop_front();
   }
 

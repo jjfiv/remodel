@@ -3,15 +3,14 @@
 
 class BuildIDTable {
   public:
-    void put(const BuildNode &node) { 
-      const string &name = node.name;
-      if(ids.find(name) == ids.end()) {
+    void put(const string &node) { 
+      if(ids.find(node) == ids.end()) {
         size_t id = ids.size();
-        ids[name] = id;
+        ids[node] = id;
       }
     }
-    int get(const BuildNode &node) {
-      return ids[node.name];
+    int get(const string &node) {
+      return ids[node];
     }
     void print(std::ostream &out) const {
       for(auto it : ids) {
@@ -28,8 +27,8 @@ BuildGraph::BuildGraph(const vector<BuildRule> &rules) {
   BuildIDTable bs;
 
   for(auto r: rules) {
-    for(BuildNode &t : r.targets) { bs.put(t); }
-    for(BuildNode &s : r.sources) { bs.put(s); }
+    for(string &t : r.targets) { bs.put(t); }
+    for(string &s : r.sources) { bs.put(s); }
   }
 
   steps.resize(bs.size());
@@ -41,15 +40,15 @@ BuildGraph::BuildGraph(const vector<BuildRule> &rules) {
 
   // insert dependencies based on steps
   for(auto r: rules) {
-    for(BuildNode &t : r.targets) {
+    for(string &t : r.targets) {
       BuildStep *cur = steps[bs.get(t)];
 
-      for(BuildNode &src : r.sources) {
+      for(string &src : r.sources) {
         BuildStep *dep = steps[bs.get(src)];
         cur->deps.push_back(dep);
       }
 
-      cur->action = r.action.get();
+      cur->action = r.action;
     }
   }
 }
