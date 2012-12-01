@@ -3,9 +3,14 @@
 
 #include "common.h"
 
-string fileSignature(const string &path);
-bool changeDirectory(const string &path);
 bool canOpenFile(const string &path);
+string fileSignature(const string &path);
+
+bool removeFile(const string &path);
+
+bool changeDirectory(const string &path);
+bool createDirectory(const string &path);
+
 
 
 #endif

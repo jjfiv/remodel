@@ -2,6 +2,9 @@
 
 #include <cstdio>
 #include <openssl/md5.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 const size_t HashBufferSize = 1024;
 
@@ -66,6 +69,34 @@ bool canOpenFile(const string &path) {
     fclose(fp);
     return true;
   }
+  return false;
+}
+
+bool createDirectory(const string &path) {
+  int rc = mkdir(path.c_str(), 0777);
+  if(rc == 0) return true;
+
+  int err = errno;
+  if(err == EEXIST)
+    return true;
+
+  perror("mkdir");
+  show(path);
+  return false;
+}
+
+bool removeFile(const string &path) {
+  int rc = remove(path.c_str());
+  if(rc == 0) return true;
+
+  int err = errno;
+
+  if(err == ENOENT) {
+    // file already did not exist; not an error
+    return false;
+  }
+
+  perror("remove");
   return false;
 }
 

@@ -11,6 +11,7 @@ class BuildAction {
     std::ostream& print(std::ostream& out) const {
       return out << '"' << command << '"';
     }
+    string get() const { return command; }
   private:
     string command;
 };

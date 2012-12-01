@@ -2,12 +2,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+
 pid_t ProcessManager::spawn(const string &cmd) {
   pid_t child = -1;
 
   string local(cmd);
 
-  child = vfork();
+  child = fork();
   
   // print error and go into error state
   if(child == -1) {
@@ -23,8 +24,9 @@ pid_t ProcessManager::spawn(const string &cmd) {
     return child;
   }
 
+  const char* interpreter = "/bin/sh";
   // child continues on to exec
-  execl("/bin/sh", "sh", "-c", local.c_str());
+  execl(interpreter, interpreter, "-c", local.c_str());
   perror("execl");
   // should never get here
   _exit(-1);

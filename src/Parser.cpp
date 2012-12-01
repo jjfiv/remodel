@@ -119,7 +119,7 @@ static BuildRule parseRule(std::deque<Token> &tokens) {
 }
 
 vector<BuildRule> parseFile(const string &fileName) {
-  cout << "parsing \""<<fileName<<"\"\n";
+  //cout << "parsing \""<<fileName<<"\"\n";
 
   std::ifstream fp(fileName);
 
