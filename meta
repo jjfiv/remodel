@@ -1,0 +1,13 @@
+DEFAULT <- remodel_meta
+src/main.o <- src/main.cpp : "g++ -o src/main.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/main.cpp"
+src/FileOps.o <- src/FileOps.cpp: "g++ -o src/FileOps.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/FileOps.cpp"
+src/ProcessManager.o <- src/ProcessManager.cpp: "g++ -o src/ProcessManager.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/ProcessManager.cpp"
+src/Token.o <- src/Token.cpp: "g++ -o src/Token.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/Token.cpp"
+src/Parser.o <- src/Parser.cpp: "g++ -o src/Parser.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/Parser.cpp"
+src/Arguments.o <- src/Arguments.cpp: "g++ -o src/Arguments.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/Arguments.cpp"
+src/BuildStep.o <- src/BuildStep.cpp: "g++ -o src/BuildStep.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/BuildStep.cpp"
+src/BuildGraph.o <- src/BuildGraph.cpp: "g++ -o src/BuildGraph.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/BuildGraph.cpp"
+src/BuildRecord.o <- src/BuildRecord.cpp: "g++ -o src/BuildRecord.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/BuildRecord.cpp"
+src/TargetBuilder.o <- src/TargetBuilder.cpp: "g++ -o src/TargetBuilder.o -c -std=c++0x -O2 -Wall -Werror -g -O2 src/TargetBuilder.cpp"
+remodel_meta <- src/main.o, src/FileOps.o, src/ProcessManager.o, src/Token.o, src/Parser.o, src/Arguments.o, src/BuildStep.o, src/BuildGraph.o, src/BuildRecord.o, src/TargetBuilder.o : "g++ -o remodel_meta src/main.o src/FileOps.o src/ProcessManager.o src/Token.o src/Parser.o src/Arguments.o src/BuildStep.o src/BuildGraph.o src/BuildRecord.o src/TargetBuilder.o -lssl -lcrypto"
+

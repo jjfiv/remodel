@@ -6,5 +6,6 @@
 .sconsign.dblite
 .remodel
 remodel
+remodel_meta
 ex/baz/baz
 

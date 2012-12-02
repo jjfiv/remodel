@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 
   if(args.getFlag(OPT_WAIT)) {
     while(!createLockfile(remodel::LockFile)) {
-      std::cout << "p" << getpid() <<  " spin...\n";
+      //std::cout << "p" << getpid() <<  " spin...\n";
     }
   } else {
     if(!createLockfile(remodel::LockFile)) {

@@ -22,6 +22,7 @@ def run():
   test("./remodel -C ex/baz")
   test("./remodel -C ex/baz noSuchTarget", 255)
   test("./remodel --remake", 0)
+  test("./remodel -f meta", 0) # build itself!
 
   for bad_file in [
       "ex/badRules",
