@@ -1,0 +1,3 @@
+DEFAULT <- exec
+exec <- missing.c: "gcc missing.c -o exec"
+

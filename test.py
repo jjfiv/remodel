@@ -19,10 +19,17 @@ def test(cmd, exprc=0):
 def run():
   test("./remodel -C ex/baz --clean")
   test("./remodel -C ex/baz")
-  test("./remodel -C ex/baz stupid", 255)
-  test("./remodel -f ex/badRules", 255)
-  test("./remodel -f ex/circularDeps", 255)
+  test("./remodel -C ex/baz noSuchTarget", 255)
   test("./remodel --remake", 0)
+
+  for bad_file in [
+      "ex/badRules",
+      "ex/circularDeps",
+      "ex/missingAction",
+      "ex/noSuchFile",
+      ]:
+    test("./remodel -f %s" % bad_file, 255)
+
   print("All tests passed!")
 
 if __name__ == '__main__':

@@ -25,9 +25,17 @@ class BuildIDTable {
 
 BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
   BuildIDTable bs;
+  std::set<string> uniqTargets;
 
   for(auto r: rules) {
-    for(string &t : r.targets) { bs.put(t); }
+    for(string &t : r.targets) {
+      if(uniqTargets.find(t) != uniqTargets.end()) {
+        cerr << "Multiple definition for target `" << t << "'\n";
+        exit(-1);
+      }
+      uniqTargets.insert(t);
+      bs.put(t);
+    }
     for(string &s : r.sources) { bs.put(s); }
   }
 
@@ -52,17 +60,29 @@ BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
     }
   }
 
-  // check for circular dependencies:
+  // check for circular dependencies and for rules that need actions
   bool error = false;
   for(auto *s : steps) {
     if(s->isCircular()) {
       cerr << "Circular dependency detected in target: `" << s->name << "'\n";
       error = true;
     }
+    // if it's not a fake target, and not a pure source, it should have an action
+    if(!s->phony() && !s->isSource() && !s->hasAction()) {
+      cerr << "No action to make target: `" << s->name << "' from ";
+      for(size_t i=0; i<s->deps.size(); i++) {
+        if(i != 0) cerr << ", ";
+        cerr << s->deps[i]->name;
+      }
+      cerr << "\n";
+      error = true;
+    }
   }
+
   if(error) {
     exit(-1);
   }
+
 }
 
 BuildGraph::~BuildGraph() {

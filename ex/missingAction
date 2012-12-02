@@ -1,0 +1,4 @@
+DEFAULT <- executable
+exec1 <- src1, src2, src3 # missing rule here
+exec2 <- src2, src4
+

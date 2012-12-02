@@ -38,7 +38,7 @@ std::ostream& ParseRule::print(std::ostream &out) const {
 
 static Token readNextToken(std::istream &input) {
   // constants
-  const string followSet = "<,: ";
+  const string followSet = "#<,: ";
   const std::set<string> accept = {Syntax::LeftArrow, Syntax::Colon, Syntax::Comma};
   
   // state
@@ -61,6 +61,16 @@ static Token readNextToken(std::istream &input) {
         }
       }
 
+      if(x == Syntax::HashComment) {
+        while(1) {
+          x = input.get();
+          if(x == '\n')
+            break;
+          if(x == EOF)
+            return Syntax::EndOfFile;
+        }
+        continue;
+      }
       if(x == ' ') continue;
       if(x == EOF) return Syntax::EndOfFile;
     } else {

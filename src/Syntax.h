@@ -9,6 +9,8 @@ namespace Syntax {
   const string Comma = ",";
   const string EndOfFile = "";
   const string DefaultTarget = "DEFAULT";
+
+  const char HashComment = '#';
 }
 
 #endif

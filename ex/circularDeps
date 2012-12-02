@@ -1,6 +1,8 @@
+# straightforward circular dep
 a <- b
 b <- a
 
+# less obvious circular dep
 c <- d
 d <- e
 e <- c
