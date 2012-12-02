@@ -5,18 +5,43 @@
 #include "remodel.h"
 #include "BuildGraph.h"
 #include <fstream>
+#include <sstream>
 
 #include "TargetBuilder.h"
 
+vector<BuildRecord> readBuildRecords() {
+  vector<BuildRecord> inputRecords;
+
+  std::ifstream fp(remodel::RecordFile);
+  
+  while(fp.good()) {
+    string line;
+    getline(fp, line);
+
+    std::stringstream ss(line);
+
+    BuildRecord r(ss);
+    if(r.complete) {
+      show(r);
+      inputRecords.push_back(r);
+    }
+  }
+
+  return inputRecords;
+}
+
+void saveBuildRecords(const vector<BuildRecord> &input) {
+  std::ofstream fp(remodel::RecordFile);
+  for(const BuildRecord &r : input) {
+    fp << r << "\n";
+  }
+}
 
 bool buildTarget(const BuildGraph &buildSet, const string target) {
-  TargetBuilder builder(buildSet, target);
+  TargetBuilder builder(buildSet, target, readBuildRecords());
   
   bool somethingChanged = builder.build();
-
-  for(const BuildRecord &r : builder.getBuildRecords()) {
-    cout << r << "\n";
-  }
+  saveBuildRecords(builder.getBuildRecords());
 
   return somethingChanged;
 }

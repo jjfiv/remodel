@@ -17,6 +17,23 @@ BuildRecord::BuildRecord(const BuildStep *step, std::map<int, TargetState> targe
   complete = true;
 }
 
+BuildRecord::BuildRecord(std::istream &input) {
+  // expect at least name and hash
+  complete = (input >> name) && (input >> hash);
+
+  if(!complete)
+    return;
+  
+  while(input.good()) {
+    string dn, dh;
+
+    if(!(input >> dn) || !(input >> dh) )
+      return;
+
+    depHash[dn] = dh;
+  }
+}
+
 bool BuildRecord::operator==(const BuildRecord &rhs) const {
   if(!complete || !rhs.complete) return false;
   if(name != rhs.name) return false;
@@ -44,14 +61,12 @@ std::ostream& BuildRecord::print(std::ostream &out) const {
     return out << "Incomplete BuildRecord: `" << name << "'";
   }
 
-  out << name << ":" << hash;
+  out << name << " " << hash << " ";
 
   if(depHash.size()) {
-    out << " <- {";
     for(auto dep : depHash) {
-      out << dep.first << ":" << dep.second << " ";
+      out << dep.first << " " << dep.second << " ";
     }
-    out << "}";
   }
 
   return out;

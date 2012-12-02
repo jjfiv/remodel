@@ -1,6 +1,6 @@
 #include "TargetBuilder.h"
 
-TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, int numJobs) {
+TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, const vector<BuildRecord> &records, int numJobs) {
   maxChildren = numJobs;
   targetSteps = graph.getTargetAndDeps(target);
 
@@ -40,6 +40,19 @@ bool TargetBuilder::startTarget(const BuildStep *step) {
   targetStates[step->id].started = true;
 
   return true;
+}
+
+bool TargetBuilder::targetDone(const BuildStep *step) const {
+  if(!step->phony()) {
+    const BuildRecord t = recordForTarget(step);
+    for(const BuildRecord &r : prevRecords) {
+      if(r == t) return true;
+    }
+  }
+
+  auto it = targetStates.find(step->id);
+  assert(it != targetStates.end());
+  return it->second.built;
 }
 
 bool TargetBuilder::awaitChild(bool block) {

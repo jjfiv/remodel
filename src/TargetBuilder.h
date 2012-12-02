@@ -8,7 +8,7 @@
 
 class TargetBuilder {
   public:
-    TargetBuilder(const BuildGraph &graph, const string &target, int numJobs=-1);
+    TargetBuilder(const BuildGraph &graph, const string &target, const vector<BuildRecord> &records, int numJobs=-1);
 
     bool build();
     vector<BuildRecord> getBuildRecords() const;
@@ -16,6 +16,7 @@ class TargetBuilder {
   private:
     BuildRecord recordForTarget(const BuildStep* step) const;
     bool startTarget(const BuildStep *step);
+    bool targetDone(const BuildStep *step) const;
     
     bool awaitChild(bool block);
     void collectReadyChildren(bool expectOne);
@@ -26,6 +27,7 @@ class TargetBuilder {
     int maxChildren;
     ProcessManager pm;
     std::map<int, TargetState> targetStates;
+    vector<BuildRecord>        prevRecords;
     std::set<const BuildStep*> targetSteps;
 };
 
