@@ -22,7 +22,7 @@ vector<BuildRecord> readBuildRecords() {
 
     BuildRecord r(ss);
     if(r.complete) {
-      show(r);
+      //show(r);
       inputRecords.push_back(r);
     }
   }

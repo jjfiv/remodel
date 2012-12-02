@@ -3,6 +3,7 @@
 TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, const vector<BuildRecord> &records, int numJobs) {
   maxChildren = numJobs;
   targetSteps = graph.getTargetAndDeps(target);
+  prevRecords = records;
 
   for(auto *step : targetSteps) {
     targetStates[step->id] = TargetState("init");
@@ -11,6 +12,8 @@ TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, cons
 }
 
 string TargetBuilder::updateHash(const BuildStep *step) {
+  if(step->phony()) return "";
+
   string hash = fileSignature(step->name);
   targetStates[step->id] = hash;
   return hash;
@@ -43,6 +46,9 @@ bool TargetBuilder::startTarget(const BuildStep *step) {
 }
 
 bool TargetBuilder::targetDone(const BuildStep *step) const {
+  if(step->isSource())
+    return canOpenFile(step->name);
+
   if(!step->phony()) {
     const BuildRecord t = recordForTarget(step);
     for(const BuildRecord &r : prevRecords) {
@@ -50,9 +56,21 @@ bool TargetBuilder::targetDone(const BuildStep *step) const {
     }
   }
 
+  // phony targets that don't have actions are done by default; they're just used to find the closure of targets to build
+  if(step->phony() && !step->hasAction())
+    return true;
+
   auto it = targetStates.find(step->id);
   assert(it != targetStates.end());
   return it->second.built;
+}
+
+bool TargetBuilder::targetReady(const BuildStep *step) const {
+  for(auto *d : step->deps) {
+    if(!targetDone(d))
+      return false;
+  }
+  return true;
 }
 
 bool TargetBuilder::awaitChild(bool block) {
@@ -68,11 +86,11 @@ bool TargetBuilder::awaitChild(bool block) {
   }
 
   const BuildStep *step = (const BuildStep*)res.data;
-  targetStates[step->id].built = true;
-  if(updateHash(step) == "") {
+  if(!step->phony() && updateHash(step) == "") {
     cerr << "Action `" << step->action << "' failed to build target `" << step->name << "'";
     exit(-1);
   }
+  targetStates[step->id].markDone();;
 
   return true;
 }
@@ -105,13 +123,16 @@ bool TargetBuilder::build() {
   int actions = 0;
 
   while(1) {
+    //show(system("sleep 1"));
     bool allDone = true;
     bool anyReady = false;
     bool anyNew = false;
 
     for(auto *step : targetSteps) {
-      if(step->isDone())
+      if(targetDone(step))
         continue;
+
+      //cout << step->name << " is not done\n";
 
       if(step->isSource()) {
         cerr << "Source file `" << step->name << "' could not be found.\n";
@@ -121,16 +142,20 @@ bool TargetBuilder::build() {
       // not all done, this one isn't, at least
       allDone = false;
 
-      if(!step->isReady())
+      if(!targetReady(step))
         continue;
-
+      
       if(step->hasAction()) {
         // not all blocked, this one is ready, so start it
         anyReady = true;
         actions++;
 
         startTarget(step);
+      } else {
+        targetStates[step->id].markDone();
       }
+
+
     }
 
     // terminate when finished building this target

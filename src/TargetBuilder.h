@@ -16,7 +16,9 @@ class TargetBuilder {
   private:
     BuildRecord recordForTarget(const BuildStep* step) const;
     bool startTarget(const BuildStep *step);
+    
     bool targetDone(const BuildStep *step) const;
+    bool targetReady(const BuildStep *step) const;
     
     bool awaitChild(bool block);
     void collectReadyChildren(bool expectOne);
