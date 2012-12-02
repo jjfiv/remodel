@@ -1,5 +1,5 @@
 #include "BuildGraph.h"
-#include <map>
+#include "remodel.h"
 
 class BuildIDTable {
   public:
@@ -30,8 +30,8 @@ BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
   for(auto r: rules) {
     for(string &t : r.targets) {
       if(uniqTargets.find(t) != uniqTargets.end()) {
-        cerr << "Multiple definition for target `" << t << "'\n";
-        exit(-1);
+        startErr() << "Multiple definition for target `" << t << "'\n";
+        cleanExit(-1);
       }
       uniqTargets.insert(t);
       bs.put(t);
@@ -64,23 +64,23 @@ BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
   bool error = false;
   for(auto *s : steps) {
     if(s->isCircular()) {
-      cerr << "Circular dependency detected in target: `" << s->name << "'\n";
+      startErr() << "Circular dependency detected in target: `" << s->name << "'\n";
       error = true;
     }
     // if it's not a fake target, and not a pure source, it should have an action
     if(!s->phony() && !s->isSource() && !s->hasAction()) {
-      cerr << "No action to make target: `" << s->name << "' from ";
+      auto &err = startErr() << "No action to make target: `" << s->name << "' from ";
       for(size_t i=0; i<s->deps.size(); i++) {
-        if(i != 0) cerr << ", ";
-        cerr << s->deps[i]->name;
+        if(i != 0) err << ", ";
+        err << s->deps[i]->name;
       }
-      cerr << "\n";
+      err << "\n";
       error = true;
     }
   }
 
   if(error) {
-    exit(-1);
+    cleanExit(-1);
   }
 
 }

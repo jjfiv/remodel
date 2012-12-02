@@ -47,7 +47,7 @@ ProcessResult ProcessManager::waitNextChild(bool block) {
   if(whom <= 0) {
     if(whom < 0 || block) {
       perror("wait");
-      exit(-1);
+      cleanExit(-1);
     }
     return ProcessResult();
   }

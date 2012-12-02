@@ -2,8 +2,6 @@
 #define _ARGUMENTS_H
 
 #include "common.h"
-#include <set>
-#include <map>
 
 class Arguments {
   public:

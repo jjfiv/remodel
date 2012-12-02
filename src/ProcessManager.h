@@ -1,7 +1,6 @@
 #ifndef _PROCESSMANAGER_H
 #define _PROCESSMANAGER_H
 
-#include <map>
 #include <unistd.h> // for pid_t
 #include "common.h"
 

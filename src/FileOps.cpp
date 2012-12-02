@@ -97,3 +97,51 @@ bool removeFile(const string &path) {
   return false;
 }
 
+static string temporaryName() {
+  string buffer(L_tmpnam, '\0');
+
+  // tmpnam returns the pointer to a temporary unique name
+  char* result = tmpnam(&buffer[0]);
+  assert(result == &buffer[0]);
+
+  // trim any extra zeroes because I'm crazy like that
+  return string(buffer.c_str());
+}
+
+bool myLockFile(const string &path) {
+  // open lock file and make sure it's ours
+  pid_t lockOwner;
+  std::ifstream fp(path);
+
+  if(!(fp >> lockOwner))
+    return false;
+
+  return lockOwner == getpid();
+}
+
+bool createLockfile(const string &path) {
+  const string tmpName = temporaryName();
+  
+  // write pid to a temporary file
+  std::ofstream fp(tmpName);
+  fp << getpid() << "\n";
+  fp.close();
+
+  // hard link file to lock location
+  int rc = link(tmpName.c_str(), path.c_str());
+  if( rc != 0 ) {
+    int err = errno;
+
+    if(err != EEXIST) {
+      perror("link");
+    }
+
+    removeFile(tmpName);
+    return false;
+  }
+
+  // remove/unlink our temporary file
+  removeFile(tmpName);
+  return myLockFile(path);
+}
+

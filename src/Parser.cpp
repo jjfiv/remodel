@@ -1,17 +1,11 @@
 #include "Parser.h"
 #include "Token.h"
+#include "remodel.h"
 #include <deque>
-#include <set>
-#include <fstream>
-
-static void parseError(const char *msg) {
-  cerr << msg << '\n';
-  exit(-1);
-}
 
 static void unexpectedToken(const Token &token) {
-  cerr << "Unexpected Token("<<token<<")\n";
-  exit(-1);
+  startErr() << "Unexpected Token("<<token<<")\n";
+  cleanExit(-1);
 }
 
 std::ostream& ParseRule::print(std::ostream &out) const {
@@ -74,7 +68,10 @@ static Token readNextToken(std::istream &input) {
       if(x == ' ') continue;
       if(x == EOF) return Syntax::EndOfFile;
     } else {
-      if(x == EOF) parseError("EOF found during quoted literal");
+      if(x == EOF) {
+        startErr() << "EOF found during quoted literal";
+        cleanExit(-1);
+      }
     }
 
     partial += x;
@@ -150,13 +147,13 @@ static ParseRule parseRule(std::deque<Token> &tokens) {
 }
 
 vector<ParseRule> parseFile(const string &fileName) {
-  //cout << "parsing \""<<fileName<<"\"\n";
+  //startMsg() << "parsing \""<<fileName<<"\"\n";
 
   std::ifstream fp(fileName);
 
   if(fp.bad()) {
-    cerr << fileName << " could not be opened";
-    exit(-1);
+    startErr() << "file `" << fileName << "' could not be opened\n";
+    cleanExit(-1);
   }
 
   std::deque<Token> tokens;
@@ -173,7 +170,7 @@ vector<ParseRule> parseFile(const string &fileName) {
   while(tokens.size()) {
     ParseRule rule = parseRule(tokens);
     if(!rule.valid()) {
-      cerr << "Bad rule.\n";
+      startErr() << "Bad rule.\n";
       break;
     }
     

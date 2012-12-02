@@ -1,4 +1,5 @@
 #include "TargetBuilder.h"
+#include "remodel.h"
 
 TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, const vector<BuildRecord> &records, int numJobs) {
   maxChildren = numJobs;
@@ -35,10 +36,10 @@ bool TargetBuilder::startTarget(const BuildStep *step) {
 
   const string &cmd = step->action;
   // echo action we're about to take
-  cout << cmd << '\n';
+  std::cout << cmd << '\n';
   if(!pm.spawn(cmd, step)) {
-    cerr << "Spawning `" << cmd << "' failed!\n";
-    exit(-1);
+    startErr() << "spawning `" << cmd << "' failed!\n";
+    cleanExit(-1);
   }
   targetStates[step->id].started = true;
 
@@ -81,14 +82,14 @@ bool TargetBuilder::awaitChild(bool block) {
   }
 
   if(!res.success()) {
-    cerr << "Command failed.\n";
-    exit(-1);
+    startErr() << "Command failed.\n";
+    cleanExit(-1);
   }
 
   const BuildStep *step = (const BuildStep*)res.data;
   if(!step->phony() && updateHash(step) == "") {
-    cerr << "Action `" << step->action << "' failed to build target `" << step->name << "'";
-    exit(-1);
+    startErr() << "Action `" << step->action << "' failed to build target `" << step->name << "'";
+    cleanExit(-1);
   }
   targetStates[step->id].markDone();;
 
@@ -123,7 +124,6 @@ bool TargetBuilder::build() {
   int actions = 0;
 
   while(1) {
-    //show(system("sleep 1"));
     bool allDone = true;
     bool anyReady = false;
     bool anyNew = false;
@@ -132,11 +132,9 @@ bool TargetBuilder::build() {
       if(targetDone(step))
         continue;
 
-      //cout << step->name << " is not done\n";
-
       if(step->isSource()) {
-        cerr << "Source file `" << step->name << "' could not be found.\n";
-        exit(-1);
+        startErr() << "Source file `" << step->name << "' could not be found.\n";
+        cleanExit(-1);
       }
 
       // not all done, this one isn't, at least
@@ -164,8 +162,8 @@ bool TargetBuilder::build() {
 
     // if we can't make forward progress, catch this condition
     if(!anyReady) {
-      cerr << "Not done building, but nothing ready to build :(\n";
-      exit(-1);
+      startErr() << "Not done building, but nothing ready to build :(\n";
+      cleanExit(-1);
     }
 
     // block if there aren't any new processes this time, no point in going around again

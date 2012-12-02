@@ -1,4 +1,5 @@
 #include "Arguments.h"
+#include "remodel.h"
 
 string Arguments::ArgDef::key() const {
   return names.front();
@@ -41,9 +42,9 @@ void Arguments::parse(int argc, char *argv[]) {
 
       // it is an option
       if(i+1 == argc) {
-        cerr << "Expected argument after `" << arg << "'";
-        showHelp(std::cerr);
-        exit(-1);
+        startErr() << "Expected argument after `" << arg << "'";
+        showHelp(startErr());
+        cleanExit(-1);
       }
 
       options[def.key()] = argv[i+1];
@@ -60,7 +61,7 @@ void Arguments::parse(int argc, char *argv[]) {
 }
 
 void Arguments::showHelp(std::ostream &out) const {
-  out << progName << " help:\n";
+  out << "help:\n";
   for(auto &def : argDefs) {
     for(size_t i=0; i<def.names.size(); i++) {
       if(i != 0) out << ", ";

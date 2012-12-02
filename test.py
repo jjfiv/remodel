@@ -15,6 +15,7 @@ def test(cmd, exprc=0):
     print(err)
     sys.exit(-1);
   print "+ %3d <- %s" % (rc, cmd)
+  #print os.path.exists(".remodel/lock") # for debugging locks
 
 def run():
   test("./remodel -C ex/baz --clean")

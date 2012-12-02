@@ -3,7 +3,6 @@
 
 #include "BuildStep.h"
 #include "TargetState.h"
-#include <map>
 
 // defines the hashes of all the dependencies of a file when it was built
 class BuildRecord {

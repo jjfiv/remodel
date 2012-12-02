@@ -6,14 +6,18 @@ using std::string;
 #include <vector>
 using std::vector;
 #include <iostream>
-using std::cout;
-using std::cerr;
+
+#include <map>
+#include <set>
+
+#include <fstream>
+#include <sstream>
 
 #include <cassert>
 
 // debugging fun
 #define show(var) \
-  cout << __FILE__ << ":" << __LINE__ << ": " << #var << " = " << var << "\n"
+  std::cout << __FILE__ << ":" << __LINE__ << ": " << #var << " = " << var << "\n"
 
 
 #endif

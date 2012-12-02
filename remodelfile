@@ -2,10 +2,10 @@
 DEFAULT <- ex/baz/baz, ex/baz/graph.png : "echo 'DONE'"
 
 # invoke remodel on example directory
-ex/baz/baz <- ex/baz/remodelfile: "./remodel -C ex/baz"
+ex/baz/baz <- ex/baz/remodelfile: "./remodel -w -C ex/baz"
 
 # invoke remodel to output graphviz file
-ex/baz/graph.dot <- ex/baz/remodelfile: "./remodel -C ex/baz --graph graph.dot"
+ex/baz/graph.dot <- ex/baz/remodelfile: "./remodel -w -C ex/baz --graph graph.dot"
 
 # invoke graphviz to make a png from the dot file
 ex/baz/graph.png <- ex/baz/graph.dot: "dot -Tpng -o ex/baz/graph.png ex/baz/graph.dot"
