@@ -51,6 +51,18 @@ BuildGraph::BuildGraph(const vector<ParseRule> &rules) {
       cur->action = r.action;
     }
   }
+
+  // check for circular dependencies:
+  bool error = false;
+  for(auto *s : steps) {
+    if(s->isCircular()) {
+      cerr << "Circular dependency detected in target: `" << s->name << "'\n";
+      error = true;
+    }
+  }
+  if(error) {
+    exit(-1);
+  }
 }
 
 BuildGraph::~BuildGraph() {

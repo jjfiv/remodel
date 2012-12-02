@@ -12,6 +12,10 @@ class BuildStep {
     bool hasDependencies() const { return deps.size() != 0; }
     bool shouldClean() const { return !isSource() && !phony(); }
 
+    // circular if it depends eventually on itself
+    bool isCircular() const { return dependsOn(id); }
+    bool dependsOn(int other) const;
+
     // output
     std::ostream& print(std::ostream &out) const;
     friend std::ostream& operator<<(std::ostream &out, const BuildStep &self) { return self.print(out); }
@@ -21,9 +25,6 @@ class BuildStep {
     string action;
     vector<BuildStep*> deps;
 
-    bool dependsOn(int other) const;
-    bool isReady() const;
-    bool isDone() const;
 };
 
 

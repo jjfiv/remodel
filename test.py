@@ -21,6 +21,7 @@ def run():
   test("./remodel -C ex/baz")
   test("./remodel -C ex/baz stupid", 255)
   test("./remodel -f ex/badRules", 255)
+  test("./remodel -f ex/circularDeps", 255)
   test("./remodel --remake", 0)
   print("All tests passed!")
 
