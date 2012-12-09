@@ -1,0 +1,6 @@
+DEFAULT <- Helper.class, Test.class:
+  "java Test"
+
+Helper.class, Test.class <- Test.java:
+  "javac Test.java"
+
