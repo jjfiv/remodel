@@ -1,5 +1,5 @@
-#ifndef _TARGETSTATE_H
-#define _TARGETSTATE_H
+#ifndef _ACTIONSTATE_H
+#define _ACTIONSTATE_H
 
 #include "common.h"
 class BuildStep;

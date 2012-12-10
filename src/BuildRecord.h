@@ -2,7 +2,7 @@
 #define _BUILDRECORD_H
 
 #include "BuildStep.h"
-#include "TargetState.h"
+#include "ActionState.h"
 
 // defines the hashes of all the dependencies of a file when it was built
 class BuildRecord {
