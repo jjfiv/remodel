@@ -19,6 +19,17 @@ class TargetBuilder {
     
     bool targetDone(const BuildStep *step) const;
     bool targetReady(const BuildStep *step) const;
+
+    const ActionState& getActionState(const BuildStep *step) const {
+      auto it = actionStates.find(step->action);
+      assert(it != actionStates.end());
+      return it->second;
+    }
+    ActionState& getActionState(const BuildStep *step) { 
+      auto it = actionStates.find(step->action);
+      assert(it != actionStates.end());
+      return it->second;
+    }
     
     bool awaitChild(bool block);
     void collectReadyChildren(bool expectOne);
@@ -28,7 +39,8 @@ class TargetBuilder {
 
     int maxChildren;
     ProcessManager pm;
-    std::map<int, TargetState> targetStates;
+    std::map<string, ActionState> actionStates;
+    std::map<int, string> targetStates;
     vector<BuildRecord>        prevRecords;
     std::set<const BuildStep*> targetSteps;
 };

@@ -1,17 +1,16 @@
 #include "BuildRecord.h"
 
-BuildRecord::BuildRecord(const BuildStep *step, std::map<int, TargetState> targetStates) {
+BuildRecord::BuildRecord(const BuildStep *step, std::map<int, string> targetStates) {
   complete = false;
 
   name = step->name;
-  const TargetState &fs = targetStates[step->id];
-  if(!fs.fileExists()) return;
-  hash = fs.hash;
+  hash = targetStates[step->id];
+  if(hash == "") return;
 
   for(auto *d : step->deps) {
-    const TargetState &dfs = targetStates[d->id];
-    if(!dfs.fileExists()) return;
-    depHash[d->name] = dfs.hash;
+    const string &hash = targetStates[d->id];
+    if(hash == "") return;
+    depHash[d->name] = hash;
   }
 
   complete = true;

@@ -3,12 +3,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define USE_SYSTEM 0
 
-bool ProcessManager::spawn(const string &cmd, const void *data) {
+bool ProcessManager::spawn(const string &cmd, void *data) {
   pid_t child = -1;
 
   string local(cmd);
-
+  
   child = vfork();
   
   // print error and go into error state
@@ -25,15 +26,24 @@ bool ProcessManager::spawn(const string &cmd, const void *data) {
     return true;
   }
 
+#if 1
+  _exit(system(local.c_str()));
+  return false;
+#else
   const char* interpreter = remodel::ShellCommand;
+  show(local.c_str());
+  show(interpreter);
   // child continues on to exec
-  execl(interpreter, interpreter, "-c", local.c_str());
-  perror("execl");
+  int rc = execl(interpreter, interpreter, "-c", local.c_str());
+  if(rc == -1) {
+    perror("execl");
+  }
   // should never get here
   _exit(-1);
   // should never never get here
   assert(0);
   return -1;
+#endif
 }
 
 ProcessResult ProcessManager::waitNextChild(bool block) {
@@ -55,7 +65,7 @@ ProcessResult ProcessManager::waitNextChild(bool block) {
   // grab user data pointer
   auto it = childData.find(whom);
   assert(it != childData.end());
-  const void *ptr = it->second;
+  void *ptr = it->second;
 
   // erase this process entry
   childData.erase(it);

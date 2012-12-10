@@ -21,8 +21,11 @@ def run():
   test("./remodel -C ex/baz --clean")
   test("./remodel -C ex/baz")
   test("./remodel -C ex/baz noSuchTarget", 255)
-  test("./remodel --remake", 0)
-  test("./remodel -f meta", 0) # build itself!
+  
+  test("./remodel -C ex/multarget --remake")
+
+  test("./remodel --remake")
+  test("./remodel -f meta") # build itself!
 
   for bad_file in [
       "ex/badRules",

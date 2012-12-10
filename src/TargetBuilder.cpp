@@ -7,8 +7,20 @@ TargetBuilder::TargetBuilder(const BuildGraph &graph, const string &target, cons
   prevRecords = records;
 
   for(auto *step : targetSteps) {
-    targetStates[step->id] = TargetState("init");
-    updateHash(step);
+    // create an appropriate actionState
+    if(step->hasAction()) {
+      auto it = actionStates.find(step->action);
+      auto &action = (it == actionStates.end()) ? actionStates[step->action] : it->second;
+      if(!step->phony()) {
+        action.targets.push_back(step);
+      }
+    }
+
+    if(!step->phony()) {
+      // create an appropriate targetState (hash)
+      targetStates[step->id] = "";
+      updateHash(step);
+    }
   }
 }
 
@@ -25,8 +37,11 @@ BuildRecord TargetBuilder::recordForTarget(const BuildStep* step) const {
 }
 
 bool TargetBuilder::startTarget(const BuildStep *step) {
+  const string &cmd = step->action;
+  ActionState &action = getActionState(step);
+  
   // no need to restart
-  if(targetStates[step->id].started)
+  if(action.hasStarted())
     return false;
 
   // if there's a limit on the number of jobs, respect it here
@@ -34,14 +49,13 @@ bool TargetBuilder::startTarget(const BuildStep *step) {
     awaitChild(true);
   }
 
-  const string &cmd = step->action;
   // echo action we're about to take
   std::cout << cmd << '\n';
-  if(!pm.spawn(cmd, step)) {
+  if(!pm.spawn(cmd, &action)) {
     startErr() << "spawning `" << cmd << "' failed!\n";
     cleanExit(-1);
   }
-  targetStates[step->id].started = true;
+  action.start();
 
   return true;
 }
@@ -59,11 +73,10 @@ bool TargetBuilder::targetDone(const BuildStep *step) const {
 
   // phony targets that don't have actions are done by default; they're just used to find the closure of targets to build
   if(step->phony() && !step->hasAction())
-    return true;
+      return true;
 
-  auto it = targetStates.find(step->id);
-  assert(it != targetStates.end());
-  return it->second.built;
+
+  return getActionState(step).isDone();
 }
 
 bool TargetBuilder::targetReady(const BuildStep *step) const {
@@ -86,12 +99,15 @@ bool TargetBuilder::awaitChild(bool block) {
     cleanExit(-1);
   }
 
-  const BuildStep *step = (const BuildStep*)res.data;
-  if(!step->phony() && updateHash(step) == "") {
-    startErr() << "Action `" << step->action << "' failed to build target `" << step->name << "'";
-    cleanExit(-1);
+  ActionState *action = (ActionState*)res.data;
+
+  for(const BuildStep *step : action->targets) {
+    if(updateHash(step) == "") {
+      startErr() << "Action `" << step->action << "' failed to build target `" << step->name << "'";
+      cleanExit(-1);
+    }
   }
-  targetStates[step->id].markDone();;
+  action->markDone();
 
   return true;
 }
@@ -143,17 +159,13 @@ bool TargetBuilder::build() {
       if(!targetReady(step))
         continue;
       
-      if(step->hasAction()) {
+      if(step->hasAction() && !getActionState(step).hasStarted()) {
         // not all blocked, this one is ready, so start it
         anyReady = true;
         actions++;
 
         startTarget(step);
-      } else {
-        targetStates[step->id].markDone();
       }
-
-
     }
 
     // terminate when finished building this target

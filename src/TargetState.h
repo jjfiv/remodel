@@ -2,18 +2,30 @@
 #define _TARGETSTATE_H
 
 #include "common.h"
+class BuildStep;
 
-// mutable TargetState object; from not existing to started to built
-struct TargetState {
+// mutable ActionState object; from not existing to started to built
+struct ActionState {
   public:
-    TargetState(const string &h="") : started(false), built(false), hash(h) { }
-    bool fileExists() const { return hash.size() != 0; }
+    // create and accumulate targets that are relevant
+    ActionState() : state(INIT) { }
 
-    void markDone() { started = true; built = true; }
+    // state machine
+    void start() { assert(state == INIT); state = STARTED; }
+    void markDone() { assert(state == STARTED); state = DONE; }
+    
+    bool hasStarted() const { return state != INIT; }
+    bool isDone() const { return state == DONE; }
 
-    bool started;
-    bool built;
-    string hash;
+    vector<const BuildStep *> targets;
+  private:
+    enum State {
+      INIT,
+      STARTED,
+      DONE,
+      ERROR,
+    };
+    State state;
 };
 
 #endif

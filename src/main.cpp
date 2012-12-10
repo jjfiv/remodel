@@ -76,6 +76,8 @@ void cleanTargets(const BuildGraph &buildSet) {
 int main(int argc, char *argv[]) {
   Arguments args;
 
+  show(getenv("PATH"));
+
   // hooray for C++11 initializer lists :D
   const auto OPT_FILE = args.defOption({"-f", "--file"}, "Read FILE as a remodelfile.");
   const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");

@@ -9,7 +9,7 @@ class BuildRecord {
   public:
     BuildRecord(const string &n, const string &h)
       : complete(false), name(n), hash(h) { }
-    BuildRecord(const BuildStep *step, std::map<int, TargetState> targetStates);
+    BuildRecord(const BuildStep *step, std::map<int, string> targetStates);
     BuildRecord(std::istream &input);
     
     bool operator==(const BuildRecord &rhs) const;

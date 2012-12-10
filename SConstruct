@@ -1,6 +1,6 @@
 import os
 
-env = Environment()
+env = Environment(ENV={'PATH':os.environ['PATH']})
 #env["CXX"]="clang++"
 env.Append(CXXFLAGS=['-std=c++0x', '-O2', '-Wall', '-Werror'])
 env.Append(CXXFLAGS=['-g'])
