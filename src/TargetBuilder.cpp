@@ -173,7 +173,7 @@ bool TargetBuilder::build() {
       break;
 
     // if we can't make forward progress, catch this condition
-    if(!anyReady) {
+    if(!anyReady && pm.numChildren() == 0) {
       startErr() << "Not done building, but nothing ready to build :(\n";
       cleanExit(-1);
     }

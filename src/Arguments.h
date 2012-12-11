@@ -33,7 +33,7 @@ class Arguments {
 
     // query
     bool getFlag(const string &str) const;
-    const string& getOption(const string &toFind, const string &fallback) const;
+    const string& getOption(const string &toFind, const string &fallback="") const;
     const vector<string>& getParameters() const { return parameters; }
 
   

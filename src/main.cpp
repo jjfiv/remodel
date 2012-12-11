@@ -52,8 +52,8 @@ void saveBuildRecords(const vector<BuildRecord> &input) {
   }
 }
 
-bool buildTarget(const BuildGraph &buildSet, const string target) {
-  TargetBuilder builder(buildSet, target, readBuildRecords());
+bool buildTarget(const BuildGraph &buildSet, const string target, int numJobs) {
+  TargetBuilder builder(buildSet, target, readBuildRecords(), numJobs);
   
   bool somethingChanged = builder.build();
   saveBuildRecords(builder.getBuildRecords());
@@ -73,14 +73,23 @@ void cleanTargets(const BuildGraph &buildSet) {
   out << "\n";
 }
 
+int parseInt(const string& input, int fallback) {
+  std::stringstream ss(input);
+  int result;
+
+  if(ss >> result)
+    return result;
+
+  return fallback;
+}
+
 int main(int argc, char *argv[]) {
   Arguments args;
-
-  show(getenv("PATH"));
 
   // hooray for C++11 initializer lists :D
   const auto OPT_FILE = args.defOption({"-f", "--file"}, "Read FILE as a remodelfile.");
   const auto OPT_DIR = args.defOption({"-C", "--directory"}, "Change to DIRECTORY before doing anything.");
+  const auto OPT_JOBS = args.defOption({"-j", "--jobs"}, "Specify the maximum number of jobs. Unlimited if N <= 0.");
   
 
   const auto OPT_GRAPH = args.defOption({"--graph"}, "Output a Graphviz dot file to FILE");
@@ -103,6 +112,8 @@ int main(int argc, char *argv[]) {
   string targetFile = args.getOption(OPT_FILE,"remodelfile");
   string currentDir = args.getOption(OPT_DIR, ".");
   vector<string> currentTargets = args.getParameters();
+  int numJobs = parseInt(args.getOption(OPT_JOBS), -1);
+
   if(currentTargets.size() == 0)
     currentTargets.push_back(Syntax::DefaultTarget);
 
@@ -165,7 +176,7 @@ int main(int argc, char *argv[]) {
   }
 
   for(auto t: currentTargets) {
-    if(!buildTarget(buildSet, t)) {
+    if(!buildTarget(buildSet, t, numJobs)) {
       startMsg() << "target `" << t << "' is up to date.\n";
     }
   }

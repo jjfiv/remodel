@@ -10,11 +10,11 @@ bool ProcessManager::spawn(const string &cmd, void *data) {
 
   string local(cmd);
   
-  child = vfork();
+  child = fork();
   
   // print error and go into error state
   if(child == -1) {
-    perror("vfork");
+    perror("fork");
     return false;
   }
 
@@ -27,7 +27,8 @@ bool ProcessManager::spawn(const string &cmd, void *data) {
   }
 
 #if 1
-  _exit(system(local.c_str()));
+  int rc = system(local.c_str());
+  _exit(rc);
   return false;
 #else
   const char* interpreter = remodel::ShellCommand;
