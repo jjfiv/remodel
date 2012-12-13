@@ -1,7 +1,7 @@
 remodel
 =======
 
-make done right
+"make done right" - for [CS691ST@umass](http://plasma.cs.umass.edu/emery/grad-systems)
 
 ### Dependencies:
 openssl - for md5sum hash calculations
