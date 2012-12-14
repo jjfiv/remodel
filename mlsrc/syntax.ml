@@ -36,11 +36,7 @@ let print_rule r =
 
 let rule_makes rule target = 
   let Rule(targets,_,_) = rule in
-    try
-      ignore(List.find (fun t -> t = target) targets); 
-      true
-    with
-      | Not_found -> false
+    Util.list_contains targets target
 ;;
 
 
