@@ -19,8 +19,6 @@ std::ostream& startMsg() {
 
 // cleans up lockfile if any before exiting
 void cleanExit(int status) {
-  if(myLockFile(remodel::LockFile))
-    removeFile(remodel::LockFile);
   exit(status);
 }
 
@@ -132,22 +130,6 @@ int main(int argc, char *argv[]) {
     startErr() << "Cannot create info directory: `" << remodel::InfoDir << "'\n";
     cleanExit(-1);
   }
-
-  if(args.getFlag(OPT_WAIT)) {
-    while(!createLockfile(remodel::LockFile)) {
-      //std::cout << "p" << getpid() <<  " spin...\n";
-    }
-  } else {
-    if(!createLockfile(remodel::LockFile)) {
-      startErr()
-        << "Cannot create lockfile\n"
-        << "  re-run with " << OPT_WAIT << " to wait for the lock\n"
-        << "  If you are sure that no other instance of remodel is running,\n"
-        << "  please delete `" << remodel::LockFile << "'\n\n";
-      cleanExit(-1);
-    }
-  }
-
 
   BuildGraph buildSet(parseFile(targetFile));
 
