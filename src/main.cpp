@@ -17,7 +17,6 @@ std::ostream& startMsg() {
   return std::cout << "remodel: ";
 }
 
-// cleans up lockfile if any before exiting
 void cleanExit(int status) {
   exit(status);
 }
@@ -91,8 +90,6 @@ int main(int argc, char *argv[]) {
   
 
   const auto OPT_GRAPH = args.defOption({"--graph"}, "Output a Graphviz dot file to FILE");
-
-  const auto OPT_WAIT = args.defFlag({"-w", "--wait"}, "Wait for lock if there is contention.");
 
   const auto OPT_CLEAN = args.defFlag({"--clean"}, "Delete all generated files.");
   const auto OPT_REMAKE = args.defFlag({"--remake"}, "Delete all generated files and make targets anyway.");

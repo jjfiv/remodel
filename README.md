@@ -34,8 +34,6 @@ Do note that ``remodel -j3`` is invalid due to argument parsing. The correct com
       * Specify the maximum number of jobs. Unlimited if N <= 0.
     --graph
       * Output a Graphviz dot file to FILE
-    -w, --wait
-      * Wait for lock if there is contention.
     --clean
       * Delete all generated files.
     --remake
@@ -56,7 +54,6 @@ Remodel will...
  - detect and abort on circular dependencies.
  - complain if actions are not provided for building targets
  - complain if a target depends on a source file that is not present in the filesystem.
- - detect if it is being invoked on a directory where another remodel process is running. It maintains a lockfile in the .remodel directory.
  - detect if actions do not create the targets specified by the remodelfile
  - detect if build file cannot create the required targets (after building what it can)
 
